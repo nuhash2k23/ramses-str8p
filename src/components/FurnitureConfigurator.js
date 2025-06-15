@@ -11,9 +11,6 @@ import {
   ContactShadows
 } from '@react-three/drei'
 import * as THREE from 'three'
-
-import gsap from 'gsap'
-
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 
 function Loader() {
@@ -51,14 +48,15 @@ function Loader() {
   )
 }
 
-// Your Model component (keeping your original logic)
+// Your Model component with fade animation instead of GSAP
 function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
   const { nodes, materials } = useGLTF('/ramses.glb')
   const groupRef = useRef()
   const upbaseRef = useRef()
   const lightbaseRef = useRef()
+  const [isTransitioning, setIsTransitioning] = useState(false)
   
-  // Load all texture sets (removed displacement maps)
+  // Load all texture sets
   const textures = useTexture({
     // Texture Set 1
     baseColor1: '/textures/1base.jpg',
@@ -96,7 +94,7 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
     texture.anisotropy = 16
   })
 
-  // Create materials for each texture set (for Upbase/table) - removed displacement maps
+  // Create materials for each texture set (for Upbase/table)
   const tableMaterials = useMemo(() => {
     const materials = {}
     for (let i = 1; i <= 4; i++) {
@@ -109,6 +107,8 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
         roughness: 0.98,
         metalness: 0.01,
         normalScale: new THREE.Vector2(1,1),
+        transparent: true,
+        opacity: 1,
       })
       
       // Set the second UV channel for AO map if available
@@ -132,13 +132,83 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
     })
   }, [lightColor, lightIntensity])
 
-  // Update Upbase material when activeTexture changes
+  // Track previous texture to only animate on actual change
+  const [prevTexture, setPrevTexture] = useState(activeTexture)
+
+  // Initialize material on first load without animation
   useEffect(() => {
-    if (upbaseRef.current && tableMaterials[activeTexture]) {
+    if (upbaseRef.current && tableMaterials[activeTexture] && !isTransitioning) {
       upbaseRef.current.material = tableMaterials[activeTexture]
       upbaseRef.current.material.needsUpdate = true
+      upbaseRef.current.material.opacity = 1 // Ensure full opacity
     }
-  }, [activeTexture, tableMaterials])
+  }, [tableMaterials])
+
+  // Fade animation for material changes ONLY when texture actually changes
+  useEffect(() => {
+    if (activeTexture !== prevTexture && upbaseRef.current && tableMaterials[activeTexture] && !isTransitioning) {
+      setIsTransitioning(true)
+      setPrevTexture(activeTexture)
+      
+      // Fade out
+      const fadeOut = () => {
+        return new Promise(resolve => {
+          const fadeOutDuration = 200 // ms
+          const startTime = Date.now()
+          
+          const animate = () => {
+            const elapsed = Date.now() - startTime
+            const progress = Math.min(elapsed / fadeOutDuration, 1)
+            
+            if (upbaseRef.current?.material) {
+              upbaseRef.current.material.opacity = 1 - progress
+            }
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate)
+            } else {
+              resolve()
+            }
+          }
+          animate()
+        })
+      }
+      
+      // Fade in
+      const fadeIn = () => {
+        return new Promise(resolve => {
+          const fadeInDuration = 200 // ms
+          const startTime = Date.now()
+          
+          const animate = () => {
+            const elapsed = Date.now() - startTime
+            const progress = Math.min(elapsed / fadeInDuration, 1)
+            
+            if (upbaseRef.current?.material) {
+              upbaseRef.current.material.opacity = progress
+            }
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate)
+            } else {
+              setIsTransitioning(false)
+              resolve()
+            }
+          }
+          animate()
+        })
+      }
+      
+      // Execute fade sequence
+      fadeOut().then(() => {
+        if (upbaseRef.current) {
+          upbaseRef.current.material = tableMaterials[activeTexture]
+          upbaseRef.current.material.needsUpdate = true
+        }
+        return fadeIn()
+      })
+    }
+  }, [activeTexture])
 
   // Update Lightbase material when color/intensity changes
   useEffect(() => {
@@ -147,32 +217,6 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
       lightbaseRef.current.material.needsUpdate = true
     }
   }, [lightMaterial])
-
-
-  useEffect(() => {
-    if (groupRef.current) {
-      gsap.fromTo(groupRef.current.scale, 
-        { x: 0.95, y: 0.95, z: 0.95 },
-        { 
-          x: 1, y: 1, z: 1, 
-          duration: 0.5, 
-          ease: "back.out(1.7)" 
-        }
-      )
-      
-      gsap.fromTo(groupRef.current.rotation, 
-        { y: groupRef.current.rotation.y },
-        { 
-          y: groupRef.current.rotation.y + Math.PI * 0.1, 
-          duration: 0.3, 
-          ease: "power2.out",
-          yoyo: true,
-          repeat: 1
-        }
-      )
-    }
-  }, [activeTexture])
-
 
   // Subtle breathing animation and light pulsing
   useFrame((state) => {
@@ -216,18 +260,37 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
   )
 }
 
-// Improved Glassmorphism UI Component
+// Enhanced UI Component with Environment Controls
 function UI({ 
   activeTexture, 
   setActiveTexture, 
   lightColor, 
   setLightColor,
   lightIntensity,
-  setLightIntensity 
+  setLightIntensity,
+  environmentPreset,
+  setEnvironmentPreset,
+  environmentRotation,
+  setEnvironmentRotation,
+  environmentIntensity,
+  setEnvironmentIntensity
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const textureNames = ['Wood', 'Metal', 'Stone', 'Glass']
+  
+  const environmentPresets = [
+    { value: 'sunset', name: 'Sunset' },
+    { value: 'dawn', name: 'Dawn' },
+    { value: 'night', name: 'Night' },
+    { value: 'warehouse', name: 'Warehouse' },
+    { value: 'forest', name: 'Forest' },
+    { value: 'apartment', name: 'Apartment' },
+    { value: 'studio', name: 'Studio' },
+    { value: 'city', name: 'City' },
+    { value: 'park', name: 'Park' },
+    { value: 'lobby', name: 'Lobby' }
+  ]
 
   const presetColors = [
     '#ffffff', '#f0f0f0', '#d0d0d0', '#a0a0a0',
@@ -267,6 +330,61 @@ function UI({
                     <span className="texture-name">{textureNames[index - 1]}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Environment */}
+            <div className="section">
+              <h3 className="section-title">Environment</h3>
+              
+              {/* Environment Preset */}
+              <div className="control">
+                <label className="control-label">Preset</label>
+                <select
+                  value={environmentPreset}
+                  onChange={(e) => setEnvironmentPreset(e.target.value)}
+                  className="select-input"
+                >
+                  {environmentPresets.map((preset) => (
+                    <option key={preset.value} value={preset.value}>
+                      {preset.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Environment Rotation and Intensity */}
+              <div className="dual-control">
+                <div className="control">
+                  <label className="control-label">Rotation</label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="1"
+                      value={environmentRotation}
+                      onChange={(e) => setEnvironmentRotation(parseInt(e.target.value))}
+                      className="slider"
+                    />
+                    <span className="slider-value">{environmentRotation}°</span>
+                  </div>
+                </div>
+                <div className="control">
+                  <label className="control-label">Intensity</label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={environmentIntensity}
+                      onChange={(e) => setEnvironmentIntensity(parseFloat(e.target.value))}
+                      className="slider"
+                    />
+                    <span className="slider-value">{environmentIntensity.toFixed(1)}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -326,6 +444,9 @@ function UI({
                   setActiveTexture(1)
                   setLightColor('#ffffff')
                   setLightIntensity(2)
+                  setEnvironmentPreset('warehouse')
+                  setEnvironmentRotation(0)
+                  setEnvironmentIntensity(0.58)
                 }}
               >
                 Reset
@@ -333,7 +454,14 @@ function UI({
               <button
                 className="action-btn primary"
                 onClick={() => {
-                  console.log('Saved:', { activeTexture, lightColor, lightIntensity })
+                  console.log('Saved:', { 
+                    activeTexture, 
+                    lightColor, 
+                    lightIntensity,
+                    environmentPreset,
+                    environmentRotation,
+                    environmentIntensity
+                  })
                 }}
               >
                 Save
@@ -492,6 +620,29 @@ function UI({
           letter-spacing: 0.5px;
         }
 
+        .select-input {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          padding: 6px 8px;
+          color: white;
+          font-size: 11px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .select-input:hover,
+        .select-input:focus {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.3);
+          outline: none;
+        }
+
+        .select-input option {
+          background: #1a1a1a;
+          color: white;
+        }
+
         .color-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -520,7 +671,7 @@ function UI({
 
         .dual-control {
           display: grid;
-          grid-template-columns: auto 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
           align-items: end;
         }
@@ -574,7 +725,8 @@ function UI({
           font-size: 10px;
           color: rgba(255, 255, 255, 0.8);
           font-family: monospace;
-          min-width: 24px;
+          min-width: 32px;
+          text-align: right;
         }
 
         .actions {
@@ -667,6 +819,9 @@ export default function FurnitureConfigurator() {
   const [activeTexture, setActiveTexture] = useState(1)
   const [lightColor, setLightColor] = useState('#ffffff')
   const [lightIntensity, setLightIntensity] = useState(2)
+  const [environmentPreset, setEnvironmentPreset] = useState('warehouse')
+  const [environmentRotation, setEnvironmentRotation] = useState(0)
+  const [environmentIntensity, setEnvironmentIntensity] = useState(0.58)
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
@@ -692,7 +847,18 @@ export default function FurnitureConfigurator() {
             lightIntensity={lightIntensity}
           />
      
-      <Stage adjustCamera={false} environment={'warehouse'} preset={'soft'} intensity={0.58}></Stage>
+          <Stage 
+            adjustCamera={false} 
+            environment={environmentPreset} 
+            preset={'soft'} 
+            intensity={environmentIntensity}
+          />
+
+          <Environment 
+            preset={environmentPreset} 
+            environmentRotation={[0, (environmentRotation * Math.PI) / 180, 0]}
+            environmentIntensity={environmentIntensity}
+          />
           
           <EffectComposer>
             <Bloom
@@ -725,6 +891,12 @@ export default function FurnitureConfigurator() {
         setLightColor={setLightColor}
         lightIntensity={lightIntensity}
         setLightIntensity={setLightIntensity}
+        environmentPreset={environmentPreset}
+        setEnvironmentPreset={setEnvironmentPreset}
+        environmentRotation={environmentRotation}
+        setEnvironmentRotation={setEnvironmentRotation}
+        environmentIntensity={environmentIntensity}
+        setEnvironmentIntensity={setEnvironmentIntensity}
       />
     </div>
   )
