@@ -2921,6 +2921,2747 @@
 // // Preload the model
 // useGLTF.preload('/ramses.glb')
 
+// import React, { Suspense, useState, useRef, useEffect, useMemo } from 'react'
+// import { Canvas, useFrame } from '@react-three/fiber'
+// import {
+//   OrbitControls,
+//   useProgress,
+//   Html,
+//   useGLTF,
+//   useTexture,
+//   ContactShadows,
+//   Environment
+// } from '@react-three/drei'
+// import * as THREE from 'three'
+// import { EffectComposer, Bloom } from '@react-three/postprocessing'
+
+// function Loader() {
+//   const { progress } = useProgress()
+//   return (
+//     <Html center>
+//       <div style={{
+//         padding: '20px',
+//         background: 'rgba(0,0,0,0.8)',
+//         borderRadius: '10px',
+//         color: 'white',
+//         textAlign: 'center',
+//         fontFamily: 'Arial, sans-serif'
+//       }}>
+//         <div style={{
+//           width: '200px',
+//           height: '4px',
+//           background: '#333',
+//           borderRadius: '2px',
+//           overflow: 'hidden',
+//           marginBottom: '10px'
+//         }}>
+//           <div 
+//             style={{
+//               width: `${progress}%`,
+//               height: '100%',
+//               background: 'linear-gradient(90deg, #4f46e5, #06b6d4)',
+//               transition: 'width 0.3s ease'
+//             }}
+//           />
+//         </div>
+//         <p style={{ margin: 0, fontSize: '14px' }}>{progress.toFixed(0)}% loaded</p>
+//       </div>
+//     </Html>
+//   )
+// }
+
+// // Optimized Lighting Component with Fixed Values
+// function Lighting() {
+//   // Fixed optimal lighting values from your console output
+//   const lightingConfig = {
+//     ambient: {
+//       intensity: 0.2
+//     },
+//     keyLight: {
+//       intensity: 2.1,
+//       position: [4.5, 25, 21.5],
+//       color: '#ffffff'
+//     },
+//     fillLight: {
+//       intensity: 1.1,
+//       position: [-25, 3, -7.5],
+//       color: '#f0f8ff'
+//     },
+//     rimLight: {
+//       intensity: 1.7,
+//       position: [7.5, 12.5, -17],
+//       color: '#ffffff'
+//     }
+//   }
+
+//   const directional1Ref = useRef()
+//   const directional2Ref = useRef()
+//   const directional3Ref = useRef()
+
+//   useEffect(() => {
+//     console.log('Optimized Table Lighting Applied:', lightingConfig)
+//   }, [])
+
+//   return (
+//     <>
+//       {/* Ambient Light - Soft base illumination */}
+//       <ambientLight intensity={lightingConfig.ambient.intensity} color="#2c2c2c" />
+//       {/* <Environment preset='studio' environmentIntensity={0.4}/> */}
+//       {/* Key Light - Main directional light */}
+//       <directionalLight
+//         ref={directional1Ref}
+//         position={lightingConfig.keyLight.position}
+//         intensity={lightingConfig.keyLight.intensity}
+//         color={lightingConfig.keyLight.color}
+//         castShadow
+//         shadow-mapSize-width={2048}
+//         shadow-mapSize-height={2048}
+//         shadow-camera-far={50}
+//         shadow-camera-left={-15}
+//         shadow-camera-right={15}
+//         shadow-camera-top={15}
+//         shadow-camera-bottom={-15}
+//         shadow-bias={-0.0001}
+//       />
+      
+//       {/* Fill Light - Secondary light to fill shadows */}
+//       <directionalLight
+//         ref={directional2Ref}
+//         position={lightingConfig.fillLight.position}
+//         intensity={lightingConfig.fillLight.intensity}
+//         color={lightingConfig.fillLight.color}
+//         castShadow
+//         shadow-mapSize-width={1024}
+//         shadow-mapSize-height={1024}
+//         shadow-camera-far={50}
+//         shadow-camera-left={-15}
+//         shadow-camera-right={15}
+//         shadow-camera-top={15}
+//         shadow-camera-bottom={-15}
+//       />
+      
+//       {/* Rim Light - Back light for edge definition */}
+//       <directionalLight
+//         ref={directional3Ref}
+//         position={lightingConfig.rimLight.position}
+//         intensity={lightingConfig.rimLight.intensity}
+//         color={lightingConfig.rimLight.color}
+//         castShadow
+//         shadow-mapSize-width={512}
+//         shadow-mapSize-height={512}
+//         shadow-camera-far={30}
+//         shadow-camera-left={-10}
+//         shadow-camera-right={10}
+//         shadow-camera-top={10}
+//         shadow-camera-bottom={-10}
+//       />
+//     </>
+//   )
+// }
+
+// // Your Model component (unchanged)
+// function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
+//   const { nodes, materials } = useGLTF('/ramses.glb')
+//   const groupRef = useRef()
+//   const upbaseRef = useRef()
+//   const lightbaseRef = useRef()
+  
+//   // Load all texture sets
+//   const textures = useTexture({
+//     // Texture Set 1
+//     baseColor1: '/textures/1base.jpg',
+//     normal1: '/textures/1norm.jpg',
+//     specular1: '/textures/1specular.jpg',
+//     ao1: '/textures/1aomap.jpg',
+    
+//     // Texture Set 2
+//     baseColor2: '/textures/2base.jpg',
+//     normal2: '/textures/2norm.jpg',
+//     specular2: '/textures/2specular.jpg',
+//     ao2: '/textures/2aomap.jpg',
+    
+//     // Texture Set 3
+//     baseColor3: '/textures/3base.jpg',
+//     normal3: '/textures/3norm.jpg',
+//     specular3: '/textures/3specular.jpg',
+//     ao3: '/textures/3aomap.jpg',
+    
+//     // Texture Set 4
+//     baseColor4: '/textures/4base.jpg',
+//     normal4: '/textures/4norm.jpg',
+//     specular4: '/textures/4specular.jpg',
+//     ao4: '/textures/4aomap.jpg',
+//   })
+
+//   // Configure textures for better quality and scale them down 5x
+//   Object.values(textures).forEach(texture => {
+//     texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+//     texture.repeat.set(10, 10) // Scale down by 5x (textures repeat 5 times)
+//     texture.flipY = false
+//     texture.generateMipmaps = true
+//     texture.minFilter = THREE.LinearMipmapLinearFilter
+//     texture.magFilter = THREE.LinearFilter
+//     texture.anisotropy = 16
+//   })
+
+//   // Create materials for each texture set (for Upbase/table)
+//   const tableMaterials = useMemo(() => {
+//     const materials = {}
+//     for (let i = 1; i <= 4; i++) {
+//       materials[i] = new THREE.MeshStandardMaterial({
+//         map: textures[`baseColor${i}`],
+//         normalMap: textures[`normal${i}`],
+//         roughnessMap: textures[`specular${i}`],
+//         aoMap: textures[`ao${i}`],
+//         aoMapIntensity: 1,
+//         roughness: 0.98,
+//         metalness: 0.01,
+//         normalScale: new THREE.Vector2(1, 1),
+//       })
+      
+//       // Set the second UV channel for AO map if available
+//       if (materials[i].aoMap) {
+//         materials[i].aoMap.channel = 1
+//       }
+//     }
+//     return materials
+//   }, [textures])
+
+//   // Light material with emissive properties (for Lightbase)
+//   const lightMaterial = useMemo(() => {
+//     return new THREE.MeshStandardMaterial({
+//       color: lightColor,
+//       emissive: lightColor,
+//       emissiveIntensity: lightIntensity,
+//       roughness: 0.1,
+//       metalness: 0.1,
+//       transparent: true,
+//       opacity: 0.9,
+//     })
+//   }, [lightColor, lightIntensity])
+
+//   // Update materials immediately when texture changes
+//   useEffect(() => {
+//     if (upbaseRef.current && tableMaterials[activeTexture]) {
+//       upbaseRef.current.material = tableMaterials[activeTexture]
+//       upbaseRef.current.material.needsUpdate = true
+//     }
+//   }, [activeTexture, tableMaterials])
+
+//   // Update Lightbase material when color/intensity changes
+//   useEffect(() => {
+//     if (lightbaseRef.current && lightMaterial) {
+//       lightbaseRef.current.material = lightMaterial
+//       lightbaseRef.current.material.needsUpdate = true
+//     }
+//   }, [lightMaterial])
+
+//   // Subtle breathing animation and light pulsing
+//   useFrame((state) => {
+//     if (groupRef.current) {
+//       groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+//     }
+    
+//     if (lightbaseRef.current && lightbaseRef.current.material) {
+//       const pulseFactor = Math.sin(state.clock.elapsedTime * 2) * 0.2
+//       lightbaseRef.current.material.emissiveIntensity = lightIntensity + pulseFactor
+      
+//       // Add subtle color shift for warmth
+//       const time = state.clock.elapsedTime * 0.5
+//       const colorShift = Math.sin(time) * 0.05
+//       lightbaseRef.current.material.emissive.setHex(
+//         new THREE.Color(lightColor).offsetHSL(0, 0, colorShift).getHex()
+//       )
+//     }
+//   })
+
+//   return (
+//     <group ref={groupRef} {...props} dispose={null}>
+//       {/* Upbase - Table that receives texture changes */}
+//       <mesh
+//         ref={upbaseRef}
+//         castShadow
+//         receiveShadow
+//         geometry={nodes.Upbase.geometry}
+//         material={tableMaterials[activeTexture]}
+//       />
+      
+//       {/* Lightbase - Light that glows and changes color */}
+//       <mesh
+//         ref={lightbaseRef}
+//         castShadow
+//         receiveShadow
+//         geometry={nodes.Lightbase.geometry}
+//         material={lightMaterial}
+//       />
+//     </group>
+//   )
+// }
+
+// // Simplified UI Component (no lighting controls)
+// function UI({ 
+//   activeTexture, 
+//   setActiveTexture, 
+//   lightColor, 
+//   setLightColor,
+//   lightIntensity,
+//   setLightIntensity,
+//   isMobile
+// }) {
+//   const [isCollapsed, setIsCollapsed] = useState(false)
+//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+//   const textureNames = ['Wood1', 'Wood2', 'Wood3', 'Wood4']
+//   const presetColors = [
+//     '#ffffff', '#f0f0f0', '#d0d0d0', '#a0a0a0',
+//     '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1'
+//   ]
+
+//   const handleTextureChange = (index) => {
+//     console.log('Texture changed to:', index)
+//     setActiveTexture(index)
+//   }
+
+//   const handleColorChange = (color) => {
+//     console.log('Light color changed to:', color)
+//     setLightColor(color)
+//   }
+
+//   const handleIntensityChange = (intensity) => {
+//     console.log('Light intensity changed to:', intensity)
+//     setLightIntensity(intensity)
+//   }
+
+//   // Mobile UI
+//   if (isMobile) {
+//     return (
+//       <>
+//         {/* Mobile Menu Toggle */}
+//         <div className="mobile-toggle">
+//           <button
+//             className="toggle-btn"
+//             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+//           >
+//             <span className="toggle-icon">{mobileMenuOpen ? '✕' : '⚙️'}</span>
+//             <span className="toggle-text">Configure</span>
+//           </button>
+//         </div>
+
+//         {/* Mobile Menu Overlay */}
+//         {mobileMenuOpen && (
+//           <div className="mobile-overlay">
+//             <div className="mobile-panel">
+//               <div className="mobile-header">
+//                 <h2>Table Configurator</h2>
+//                 <button 
+//                   className="close-btn"
+//                   onClick={() => setMobileMenuOpen(false)}
+//                 >
+//                   ✕
+//                 </button>
+//               </div>
+
+//               <div className="mobile-content">
+//                 {/* Materials */}
+//                 <div className="mobile-section">
+//                   <h3>Table Material</h3>
+//                   <div className="mobile-texture-grid">
+//                     {[1, 2, 3, 4].map((index) => (
+//                       <button
+//                         key={index}
+//                         className={`mobile-texture-btn ${activeTexture === index ? 'active' : ''}`}
+//                         onClick={() => handleTextureChange(index)}
+//                       >
+//                         <span className="texture-number">{index}</span>
+//                         <span className="texture-name">{textureNames[index - 1]}</span>
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+
+//                 {/* Model Lighting */}
+//                 <div className="mobile-section">
+//                   <h3>Table Light</h3>
+//                   <div className="mobile-control">
+//                     <label>Color</label>
+//                     <div className="mobile-color-grid">
+//                       {presetColors.map((color, index) => (
+//                         <button
+//                           key={index}
+//                           className={`mobile-color-btn ${lightColor === color ? 'active' : ''}`}
+//                           style={{ backgroundColor: color }}
+//                           onClick={() => handleColorChange(color)}
+//                         />
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div className="mobile-dual-control">
+//                     <div className="mobile-control">
+//                       <label>Custom</label>
+//                       <input
+//                         type="color"
+//                         value={lightColor}
+//                         onChange={(e) => handleColorChange(e.target.value)}
+//                         className="mobile-color-input"
+//                       />
+//                     </div>
+//                     <div className="mobile-control">
+//                       <label>Intensity</label>
+//                       <div className="mobile-slider-container">
+//                         <input
+//                           type="range"
+//                           min="0.5"
+//                           max="5"
+//                           step="0.1"
+//                           value={lightIntensity}
+//                           onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
+//                           className="mobile-slider"
+//                         />
+//                         <span className="mobile-slider-value">{lightIntensity.toFixed(1)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         <style jsx>{`
+//           .mobile-toggle {
+//             position: fixed;
+//             bottom: 20px;
+//             left: 50%;
+//             transform: translateX(-50%);
+//             z-index: 1000;
+//           }
+
+//           .toggle-btn {
+//             background: rgba(0, 0, 0, 0.85);
+//             backdrop-filter: blur(20px);
+//             border: 1px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 25px;
+//             padding: 12px 20px;
+//             color: white;
+//             cursor: pointer;
+//             transition: all 0.3s ease;
+//             display: flex;
+//             align-items: center;
+//             gap: 8px;
+//             font-size: 14px;
+//             font-weight: 500;
+//           }
+
+//           .toggle-btn:hover {
+//             background: rgba(0, 0, 0, 0.9);
+//             transform: scale(1.05);
+//           }
+
+//           .toggle-icon {
+//             font-size: 16px;
+//           }
+
+//           .mobile-overlay {
+//             position: fixed;
+//             top: 0;
+//             left: 0;
+//             right: 0;
+//             bottom: 0;
+//             background: rgba(0, 0, 0, 0.8);
+//             backdrop-filter: blur(10px);
+//             z-index: 1001;
+//             display: flex;
+//             align-items: flex-end;
+//           }
+
+//           .mobile-panel {
+//             width: 100%;
+//             max-height: 80vh;
+//             background: rgba(0, 0, 0, 0.95);
+//             border-radius: 20px 20px 0 0;
+//             color: white;
+//             overflow-y: auto;
+//           }
+
+//           .mobile-header {
+//             display: flex;
+//             justify-content: space-between;
+//             align-items: center;
+//             padding: 20px;
+//             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+//           }
+
+//           .mobile-header h2 {
+//             margin: 0;
+//             font-size: 20px;
+//             font-weight: 600;
+//           }
+
+//           .close-btn {
+//             background: rgba(255, 255, 255, 0.1);
+//             border: none;
+//             border-radius: 50%;
+//             width: 32px;
+//             height: 32px;
+//             color: white;
+//             cursor: pointer;
+//             font-size: 16px;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//           }
+
+//           .mobile-content {
+//             padding: 20px;
+//             display: flex;
+//             flex-direction: column;
+//             gap: 24px;
+//           }
+
+//           .mobile-section {
+//             display: flex;
+//             flex-direction: column;
+//             gap: 12px;
+//           }
+
+//           .mobile-section h3 {
+//             margin: 0;
+//             font-size: 16px;
+//             font-weight: 600;
+//             color: rgba(255, 255, 255, 0.9);
+//             text-transform: uppercase;
+//             letter-spacing: 0.5px;
+//           }
+
+//           .mobile-texture-grid {
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;
+//             gap: 12px;
+//           }
+
+//           .mobile-texture-btn {
+//             background: rgba(255, 255, 255, 0.05);
+//             border: 1px solid rgba(255, 255, 255, 0.1);
+//             border-radius: 12px;
+//             padding: 16px;
+//             color: rgba(255, 255, 255, 0.8);
+//             cursor: pointer;
+//             transition: all 0.2s ease;
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             gap: 4px;
+//           }
+
+//           .mobile-texture-btn:hover,
+//           .mobile-texture-btn.active {
+//             background: rgba(255, 255, 255, 0.15);
+//             border-color: rgba(255, 255, 255, 0.3);
+//             color: white;
+//           }
+
+//           .texture-number {
+//             font-weight: 600;
+//             font-size: 18px;
+//           }
+
+//           .texture-name {
+//             font-size: 12px;
+//             opacity: 0.8;
+//           }
+
+//           .mobile-control {
+//             display: flex;
+//             flex-direction: column;
+//             gap: 8px;
+//           }
+
+//           .mobile-control label {
+//             font-size: 12px;
+//             font-weight: 500;
+//             color: rgba(255, 255, 255, 0.7);
+//             text-transform: uppercase;
+//             letter-spacing: 0.5px;
+//           }
+
+//           .mobile-dual-control {
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;
+//             gap: 16px;
+//           }
+
+//           .mobile-color-grid {
+//             display: grid;
+//             grid-template-columns: repeat(4, 1fr);
+//             gap: 8px;
+//           }
+
+//           .mobile-color-btn {
+//             width: 40px;
+//             height: 40px;
+//             border: 2px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 8px;
+//             cursor: pointer;
+//             transition: all 0.2s ease;
+//           }
+
+//           .mobile-color-btn:hover,
+//           .mobile-color-btn.active {
+//             border-color: white;
+//             transform: scale(1.1);
+//           }
+
+//           .mobile-color-input {
+//             width: 40px;
+//             height: 40px;
+//             border: 2px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 8px;
+//             background: none;
+//             cursor: pointer;
+//           }
+
+//           .mobile-slider-container {
+//             display: flex;
+//             align-items: center;
+//             gap: 8px;
+//           }
+
+//           .mobile-slider {
+//             flex: 1;
+//             height: 6px;
+//             background: rgba(255, 255, 255, 0.2);
+//             border-radius: 3px;
+//             outline: none;
+//             cursor: pointer;
+//             -webkit-appearance: none;
+//             appearance: none;
+//           }
+
+//           .mobile-slider::-webkit-slider-thumb {
+//             -webkit-appearance: none;
+//             appearance: none;
+//             width: 20px;
+//             height: 20px;
+//             background: white;
+//             border-radius: 50%;
+//             cursor: pointer;
+//           }
+
+//           .mobile-slider-value {
+//             font-size: 12px;
+//             color: rgba(255, 255, 255, 0.8);
+//             font-family: monospace;
+//             min-width: 40px;
+//             text-align: right;
+//           }
+//         `}</style>
+//       </>
+//     )
+//   }
+
+//   // Desktop UI (simplified - no lighting tab)
+//   return (
+//     <>
+//       <div className="glass-panel">
+//         <div className="panel-header">
+//           <h2 className="panel-title">
+//             {isCollapsed ? 'TC' : 'Table Configurator'}
+//           </h2>
+//           <button 
+//             className="collapse-btn"
+//             onClick={() => setIsCollapsed(!isCollapsed)}
+//           >
+//             {isCollapsed ? '←' : '→'}
+//           </button>
+//         </div>
+        
+//         {!isCollapsed && (
+//           <div className="panel-content">
+//             {/* Materials */}
+//             <div className="section">
+//               <h3 className="section-title">Table Material</h3>
+//               <div className="texture-grid">
+//                 {[1, 2, 3, 4].map((index) => (
+//                   <button
+//                     key={index}
+//                     className={`texture-btn ${activeTexture === index ? 'active' : ''}`}
+//                     onClick={() => handleTextureChange(index)}
+//                   >
+//                     <span className="texture-number">{index}</span>
+//                     <span className="texture-name">{textureNames[index - 1]}</span>
+//                   </button>
+//                 ))}
+//               </div>
+//             </div>
+
+//             {/* Model Lighting */}
+//             <div className="section">
+//               <h3 className="section-title">Table Light</h3>
+              
+//               <div className="control">
+//                 <label className="control-label">Color</label>
+//                 <div className="color-grid">
+//                   {presetColors.map((color, index) => (
+//                     <button
+//                       key={index}
+//                       className={`color-btn ${lightColor === color ? 'active' : ''}`}
+//                       style={{ backgroundColor: color }}
+//                       onClick={() => handleColorChange(color)}
+//                     />
+//                   ))}
+//                 </div>
+//               </div>
+
+//               <div className="dual-control">
+//                 <div className="control">
+//                   <label className="control-label">Custom</label>
+//                   <input
+//                     type="color"
+//                     value={lightColor}
+//                     onChange={(e) => handleColorChange(e.target.value)}
+//                     className="color-input"
+//                   />
+//                 </div>
+//                 <div className="control">
+//                   <label className="control-label">Intensity</label>
+//                   <div className="slider-container">
+//                     <input
+//                       type="range"
+//                       min="0.5"
+//                       max="5"
+//                       step="0.1"
+//                       value={lightIntensity}
+//                       onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
+//                       className="slider"
+//                     />
+//                     <span className="slider-value">{lightIntensity.toFixed(1)}</span>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Actions */}
+//             <div className="actions">
+//               <button
+//                 className="action-btn"
+//                 onClick={() => {
+//                   console.log('Resetting to defaults')
+//                   setActiveTexture(1)
+//                   setLightColor('#ffffff')
+//                   setLightIntensity(2)
+//                 }}
+//               >
+//                 Reset
+//               </button>
+//               <button
+//                 className="action-btn primary"
+//                 onClick={() => {
+//                   const config = { 
+//                     activeTexture, 
+//                     lightColor, 
+//                     lightIntensity
+//                   }
+//                   console.log('Table configuration saved:', config)
+//                 }}
+//               >
+//                 Save
+//               </button>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <style jsx>{`
+//         .glass-panel {
+//           position: fixed;
+//           top: 16px;
+//           right: 16px;
+//           width: ${isCollapsed ? '56px' : '280px'};
+//           max-height: 90vh;
+//           background: rgba(2, 0, 0, 0.85);
+//           backdrop-filter: blur(20px);
+//           border: 1px solid rgba(0, 0, 0, 0.56);
+//           border-radius: 16px;
+//           padding: 16px;
+//           color: white;
+//           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+//           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+//           z-index: 1000;
+//           overflow-y: auto;
+//           scrollbar-width: none;
+//           -ms-overflow-style: none;
+//         }
+
+//         .glass-panel::-webkit-scrollbar {
+//           display: none;
+//         }
+
+//         .panel-header {
+//           display: flex;
+//           justify-content: space-between;
+//           align-items: center;
+//           margin-bottom: ${isCollapsed ? '0' : '16px'};
+//         }
+
+//         .panel-title {
+//           margin: 0;
+//           font-size: 16px;
+//           font-weight: 600;
+//           color: white;
+//         }
+
+//         .collapse-btn {
+//           background: rgba(255, 255, 255, 0.1);
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 8px;
+//           width: 24px;
+//           height: 24px;
+//           color: white;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           font-size: 12px;
+//           display: flex;
+//           align-items: center;
+//           justify-content: center;
+//         }
+
+//         .collapse-btn:hover {
+//           background: rgba(255, 255, 255, 0.2);
+//           transform: scale(1.1);
+//         }
+
+//         .panel-content {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 16px;
+//         }
+
+//         .section {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 8px;
+//         }
+
+//         .section-title {
+//           margin: 0;
+//           font-size: 12px;
+//           font-weight: 600;
+//           color: rgba(255, 255, 255, 0.9);
+//           text-transform: uppercase;
+//           letter-spacing: 0.5px;
+//         }
+
+//         .texture-grid {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 6px;
+//         }
+
+//         .texture-btn {
+//           background: rgba(255, 255, 255, 0.05);
+//           border: 1px solid rgba(255, 255, 255, 0.1);
+//           border-radius: 8px;
+//           padding: 8px;
+//           color: rgba(255, 255, 255, 0.8);
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           display: flex;
+//           flex-direction: column;
+//           align-items: center;
+//           gap: 2px;
+//           font-size: 11px;
+//         }
+
+//         .texture-btn:hover {
+//           background: rgba(255, 255, 255, 0.1);
+//           border-color: rgba(255, 255, 255, 0.3);
+//         }
+
+//         .texture-btn.active {
+//           background: rgba(255, 255, 255, 0.2);
+//           border-color: rgba(255, 255, 255, 0.4);
+//           color: white;
+//         }
+
+//         .texture-number {
+//           font-weight: 600;
+//           font-size: 12px;
+//         }
+
+//         .texture-name {
+//           font-size: 9px;
+//           opacity: 0.9;
+//         }
+
+//         .control {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 6px;
+//         }
+
+//         .control-label {
+//           font-size: 10px;
+//           font-weight: 500;
+//           color: rgba(255, 255, 255, 0.7);
+//           text-transform: uppercase;
+//           letter-spacing: 0.5px;
+//         }
+
+//         .color-grid {
+//           display: grid;
+//           grid-template-columns: repeat(4, 1fr);
+//           gap: 4px;
+//         }
+
+//         .color-btn {
+//           width: 24px;
+//           height: 24px;
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 6px;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//         }
+
+//         .color-btn:hover {
+//           transform: scale(1.1);
+//           border-color: rgba(255, 255, 255, 0.4);
+//         }
+
+//         .color-btn.active {
+//           border-width: 2px;
+//           border-color: white;
+//           transform: scale(1.05);
+//         }
+
+//         .dual-control {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 12px;
+//           align-items: end;
+//         }
+
+//         .color-input {
+//           width: 32px;
+//           height: 32px;
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 6px;
+//           background: none;
+//           cursor: pointer;
+//         }
+
+//         .slider-container {
+//           display: flex;
+//           align-items: center;
+//           gap: 8px;
+//         }
+
+//         .slider {
+//           flex: 1;
+//           height: 4px;
+//           background: rgba(255, 255, 255, 0.2);
+//           border-radius: 2px;
+//           outline: none;
+//           cursor: pointer;
+//           -webkit-appearance: none;
+//           appearance: none;
+//         }
+
+//         .slider::-webkit-slider-thumb {
+//           -webkit-appearance: none;
+//           appearance: none;
+//           width: 16px;
+//           height: 16px;
+//           background: white;
+//           border-radius: 50%;
+//           cursor: pointer;
+//         }
+
+//         .slider::-moz-range-thumb {
+//           width: 16px;
+//           height: 16px;
+//           background: white;
+//           border-radius: 50%;
+//           cursor: pointer;
+//           border: none;
+//         }
+
+//         .slider-value {
+//           font-size: 10px;
+//           color: rgba(255, 255, 255, 0.8);
+//           font-family: monospace;
+//           min-width: 32px;
+//           text-align: right;
+//         }
+
+//         .actions {
+//           display: flex;
+//           gap: 6px;
+//         }
+
+//         .action-btn {
+//           flex: 1;
+//           background: rgba(255, 255, 255, 0.1);
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 8px;
+//           padding: 8px 12px;
+//           color: white;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           font-size: 11px;
+//           font-weight: 500;
+//         }
+
+//         .action-btn:hover {
+//           background: rgba(255, 255, 255, 0.15);
+//           transform: translateY(-1px);
+//         }
+
+//         .action-btn.primary {
+//           background: rgba(255, 255, 255, 0.2);
+//           border-color: rgba(255, 255, 255, 0.3);
+//         }
+//       `}</style>
+//     </>
+//   )
+// }
+
+// // Hook to detect mobile devices
+// function useIsMobile() {
+//   const [isMobile, setIsMobile] = useState(false)
+
+//   useEffect(() => {
+//     const checkMobile = () => {
+//       setIsMobile(window.innerWidth <= 768)
+//     }
+    
+//     checkMobile()
+//     window.addEventListener('resize', checkMobile)
+    
+//     return () => window.removeEventListener('resize', checkMobile)
+//   }, [])
+
+//   return isMobile
+// }
+
+// export default function FurnitureConfigurator() {
+//   const [activeTexture, setActiveTexture] = useState(1)
+//   const [lightColor, setLightColor] = useState('#ffffff')
+//   const [lightIntensity, setLightIntensity] = useState(2)
+  
+//   const isMobile = useIsMobile()
+
+//   // Dynamic camera settings based on device
+//   const cameraPosition = isMobile ? [8, 8, 8] : [5, 5, 5]
+//   const cameraFov = isMobile ? 55 : 45
+
+//   return (
+//     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+//       <Canvas
+//         camera={{ position: cameraPosition, fov: cameraFov }}
+//         shadows
+//         gl={{
+//           antialias: true,
+//           alpha: false,
+//           powerPreference: "high-performance",
+//           preserveDrawingBuffer: true
+//         }}
+//         dpr={[1, 2]}
+//       >
+//         {/* Dark background for ambience */}
+//         <color attach="background" args={['#0a0a0a']} />
+        
+//         <Suspense fallback={<Loader />}>
+//           <ContactShadows position={[0, -1, 0]} opacity={0.8} scale={30} blur={1} />
+       
+//           <Model
+//             activeTexture={activeTexture}
+//             lightColor={lightColor}
+//             lightIntensity={lightIntensity}
+//           />
+
+//           {/* Optimized Fixed Lighting Setup */}
+//           <Lighting />
+          
+//           <EffectComposer>
+//             <Bloom
+//               intensity={0.2}
+//               luminanceThreshold={0.9}
+//               luminanceSmoothing={15}
+//               height={90}
+//             />
+//           </EffectComposer>
+  
+//         </Suspense>
+        
+//         <OrbitControls
+//           enablePan={false}
+//           enableZoom={true}
+//           enableRotate={true}
+//           minDistance={isMobile ? 5 : 3}
+//           maxDistance={isMobile ? 20 : 15}
+//           minPolarAngle={Math.PI / 6}
+//           maxPolarAngle={Math.PI / 2}
+//           enableDamping={true}
+//           dampingFactor={0.05}
+//         />
+//       </Canvas>
+      
+//       <UI
+//         activeTexture={activeTexture}
+//         setActiveTexture={setActiveTexture}
+//         lightColor={lightColor}
+//         setLightColor={setLightColor}
+//         lightIntensity={lightIntensity}
+//         setLightIntensity={setLightIntensity}
+//         isMobile={isMobile}
+//       />
+//     </div>
+//   )
+// }
+
+// // Preload the model
+// useGLTF.preload('/ramses.glb')
+
+
+// import React, { Suspense, useState, useRef, useEffect, useMemo } from 'react'
+// import { Canvas, useFrame } from '@react-three/fiber'
+// import {
+//   OrbitControls,
+//   useProgress,
+//   Html,
+//   useGLTF,
+//   useTexture,
+//   MeshReflectorMaterial
+// } from '@react-three/drei'
+// import * as THREE from 'three'
+// import { EffectComposer, Bloom } from '@react-three/postprocessing'
+// import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
+
+// // Initialize RectAreaLight uniforms
+// RectAreaLightUniformsLib.init()
+
+// function Loader() {
+//   const { progress } = useProgress()
+//   return (
+//     <Html center>
+//       <div style={{
+//         padding: '20px',
+//         background: 'rgba(0,0,0,0.8)',
+//         borderRadius: '10px',
+//         color: 'white',
+//         textAlign: 'center',
+//         fontFamily: 'Arial, sans-serif'
+//       }}>
+//         <div style={{
+//           width: '200px',
+//           height: '4px',
+//           background: '#333',
+//           borderRadius: '2px',
+//           overflow: 'hidden',
+//           marginBottom: '10px'
+//         }}>
+//           <div 
+//             style={{
+//               width: `${progress}%`,
+//               height: '100%',
+//               background: 'linear-gradient(90deg, #4f46e5, #06b6d4)',
+//               transition: 'width 0.3s ease'
+//             }}
+//           />
+//         </div>
+//         <p style={{ margin: 0, fontSize: '14px' }}>{progress.toFixed(0)}% loaded</p>
+//       </div>
+//     </Html>
+//   )
+// }
+
+// // Modern Under-Table Lighting Component using THREE.RectAreaLight directly
+// function ModernLighting({ 
+//   rectIntensity,
+//   rectColor,
+//   spotlightIntensity,
+//   spotlightPosition,
+//   spotlightAngle,
+//   spotlightPenumbra,
+//   spotlightDistance,
+//   spotlightDecay
+// }) {
+//   const spotlightRef = useRef()
+//   const rectLight1Ref = useRef()
+//   const rectLight2Ref = useRef()
+//   const rectLight3Ref = useRef()
+//   const rectLight4Ref = useRef()
+  
+//   useEffect(() => {
+//     console.log('Modern Lighting Setup:', {
+//       rectLights: {
+//         intensity: rectIntensity,
+//         color: rectColor
+//       },
+//       spotlight: {
+//         intensity: spotlightIntensity,
+//         position: spotlightPosition,
+//         angle: spotlightAngle,
+//         penumbra: spotlightPenumbra,
+//         distance: spotlightDistance,
+//         decay: spotlightDecay
+//       }
+//     })
+//   }, [rectIntensity, rectColor, spotlightIntensity, spotlightPosition, spotlightAngle, spotlightPenumbra, spotlightDistance, spotlightDecay])
+
+//   return (
+//     <>
+//       {/* Ambient Light for general illumination */}
+//       <ambientLight intensity={0.1} color="#1a1a1a" />
+      
+//       {/* Rect Light 1 - Right side */}
+//       <rectAreaLight
+//         ref={rectLight1Ref}
+//         width={4.78}
+//         height={0.844}
+//         intensity={rectIntensity}
+//         color={rectColor}
+//         position={[2.367, -0.875, 0.001]}
+//         rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+//       />
+      
+//       {/* Rect Light 2 - Left side */}
+//       <rectAreaLight
+//         ref={rectLight2Ref}
+//         width={4.78}
+//         height={0.844}
+//         intensity={rectIntensity}
+//         color={rectColor}
+//         position={[-2.382, -0.875, 0.001]}
+//         rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+//       />
+      
+//       {/* Rect Light 3 - Back */}
+//       <rectAreaLight
+//         ref={rectLight3Ref}
+//         width={4.78}
+//         height={0.844}
+//         intensity={rectIntensity}
+//         color={rectColor}
+//         position={[0.012, -0.875, 2.385]}
+//         rotation={[-Math.PI / 2, 0, Math.PI]}
+//       />
+      
+//       {/* Rect Light 4 - Front */}
+//       <rectAreaLight
+//         ref={rectLight4Ref}
+//         width={4.78}
+//         height={0.844}
+//         intensity={rectIntensity}
+//         color={rectColor}
+//         position={[0.012, -0.875, -2.364]}
+//         rotation={[-Math.PI / 2, 0, Math.PI]}
+//       />
+      
+//       {/* Main Spotlight from front */}
+//       <spotLight
+//         ref={spotlightRef}
+//         position={spotlightPosition}
+//         intensity={spotlightIntensity}
+//         angle={spotlightAngle}
+//         penumbra={spotlightPenumbra}
+//         distance={spotlightDistance}
+//         decay={spotlightDecay}
+//         color="#ffffff"
+//         castShadow
+//         shadow-mapSize-width={2048}
+//         shadow-mapSize-height={2048}
+//         shadow-camera-near={0.5}
+//         shadow-camera-far={50}
+//         shadow-bias={-0.0001}
+//         target-position={[0, 0, 0]}
+//       />
+//     </>
+//   )
+// }
+
+// // Reflective Floor Component using MeshReflectorMaterial
+// function ReflectiveFloor() {
+//   return (
+//     <mesh position={[0, -1.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+//       <planeGeometry args={[80, 80]} />
+//       <MeshReflectorMaterial
+//         blur={[100, 100]}
+//         resolution={1024}
+//         mixBlur={1}
+//         mixStrength={0.8}
+//         roughness={1}
+//         depthScale={1.2}
+//         minDepthThreshold={0.4}
+//         maxDepthThreshold={1.4}
+//         color="#151515"
+//         metalness={0.8}
+//         mirror={0.6}
+//       />
+//     </mesh>
+//   )
+// }
+
+// // Your Model component (unchanged for lightbase behavior)
+// function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
+//   const { nodes, materials } = useGLTF('/ramses.glb')
+//   const groupRef = useRef()
+//   const upbaseRef = useRef()
+//   const lightbaseRef = useRef()
+  
+//   // Load all texture sets
+//   const textures = useTexture({
+//     // Texture Set 1
+//     baseColor1: '/textures/1base.jpg',
+//     normal1: '/textures/1norm.jpg',
+//     specular1: '/textures/1specular.jpg',
+//     ao1: '/textures/1aomap.jpg',
+    
+//     // Texture Set 2
+//     baseColor2: '/textures/2base.jpg',
+//     normal2: '/textures/2norm.jpg',
+//     specular2: '/textures/2specular.jpg',
+//     ao2: '/textures/2aomap.jpg',
+    
+//     // Texture Set 3
+//     baseColor3: '/textures/3base.jpg',
+//     normal3: '/textures/3norm.jpg',
+//     specular3: '/textures/3specular.jpg',
+//     ao3: '/textures/3aomap.jpg',
+    
+//     // Texture Set 4
+//     baseColor4: '/textures/4base.jpg',
+//     normal4: '/textures/4norm.jpg',
+//     specular4: '/textures/4specular.jpg',
+//     ao4: '/textures/4aomap.jpg',
+//   })
+
+//   // Configure textures for better quality and scale them down 5x
+//   Object.values(textures).forEach(texture => {
+//     texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+//     texture.repeat.set(10, 10) // Scale down by 5x (textures repeat 5 times)
+//     texture.flipY = false
+//     texture.generateMipmaps = true
+//     texture.minFilter = THREE.LinearMipmapLinearFilter
+//     texture.magFilter = THREE.LinearFilter
+//     texture.anisotropy = 16
+//   })
+
+//   // Create materials for each texture set (for Upbase/table)
+//   const tableMaterials = useMemo(() => {
+//     const materials = {}
+//     for (let i = 1; i <= 4; i++) {
+//       materials[i] = new THREE.MeshStandardMaterial({
+//         map: textures[`baseColor${i}`],
+//         normalMap: textures[`normal${i}`],
+//         roughnessMap: textures[`specular${i}`],
+//         aoMap: textures[`ao${i}`],
+//         aoMapIntensity: 1,
+//         roughness: 0.98,
+//         metalness: 0.01,
+//         normalScale: new THREE.Vector2(1, 1),
+//       })
+      
+//       // Set the second UV channel for AO map if available
+//       if (materials[i].aoMap) {
+//         materials[i].aoMap.channel = 1
+//       }
+//     }
+//     return materials
+//   }, [textures])
+
+//   // Light material with emissive properties (for Lightbase)
+//   const lightMaterial = useMemo(() => {
+//     return new THREE.MeshStandardMaterial({
+//       color: lightColor,
+//       emissive: lightColor,
+//       emissiveIntensity: lightIntensity,
+//       roughness: 0.1,
+//       metalness: 0.1,
+//       transparent: true,
+//       opacity: 0.9,
+//     })
+//   }, [lightColor, lightIntensity])
+
+//   // Update materials immediately when texture changes
+//   useEffect(() => {
+//     if (upbaseRef.current && tableMaterials[activeTexture]) {
+//       upbaseRef.current.material = tableMaterials[activeTexture]
+//       upbaseRef.current.material.needsUpdate = true
+//     }
+//   }, [activeTexture, tableMaterials])
+
+//   // Update Lightbase material when color/intensity changes
+//   useEffect(() => {
+//     if (lightbaseRef.current && lightMaterial) {
+//       lightbaseRef.current.material = lightMaterial
+//       lightbaseRef.current.material.needsUpdate = true
+//     }
+//   }, [lightMaterial])
+
+//   // Subtle breathing animation and light pulsing
+//   useFrame((state) => {
+//     if (groupRef.current) {
+//       groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+//     }
+    
+//     if (lightbaseRef.current && lightbaseRef.current.material) {
+//       const pulseFactor = Math.sin(state.clock.elapsedTime * 2) * 0.2
+//       lightbaseRef.current.material.emissiveIntensity = lightIntensity + pulseFactor
+      
+//       // Add subtle color shift for warmth
+//       const time = state.clock.elapsedTime * 0.5
+//       const colorShift = Math.sin(time) * 0.05
+//       lightbaseRef.current.material.emissive.setHex(
+//         new THREE.Color(lightColor).offsetHSL(0, 0, colorShift).getHex()
+//       )
+//     }
+//   })
+
+//   return (
+//     <group ref={groupRef} {...props} dispose={null}>
+//       {/* Upbase - Table that receives texture changes */}
+//       <mesh
+//         ref={upbaseRef}
+//         castShadow
+//         receiveShadow
+//         geometry={nodes.Upbase.geometry}
+//         material={tableMaterials[activeTexture]}
+//       />
+      
+//       {/* Lightbase - Light that glows and changes color */}
+//       <mesh
+//         ref={lightbaseRef}
+//         castShadow
+//         receiveShadow
+//         geometry={nodes.Lightbase.geometry}
+//         material={lightMaterial}
+//       />
+//     </group>
+//   )
+// }
+
+// // Enhanced UI Component with modern lighting controls
+// function UI({ 
+//   activeTexture, 
+//   setActiveTexture, 
+//   lightColor, 
+//   setLightColor,
+//   lightIntensity,
+//   setLightIntensity,
+//   rectIntensity,
+//   setRectIntensity,
+//   rectColor,
+//   setRectColor,
+//   spotlightIntensity,
+//   setSpotlightIntensity,
+//   spotlightPosition,
+//   setSpotlightPosition,
+//   spotlightAngle,
+//   setSpotlightAngle,
+//   spotlightPenumbra,
+//   setSpotlightPenumbra,
+//   spotlightDistance,
+//   setSpotlightDistance,
+//   spotlightDecay,
+//   setSpotlightDecay,
+//   isMobile
+// }) {
+//   const [isCollapsed, setIsCollapsed] = useState(false)
+//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+//   const [activeTab, setActiveTab] = useState('materials')
+
+//   const textureNames = ['Wood1', 'Wood2', 'Wood3', 'Wood4']
+//   const presetColors = [
+//     '#ffffff', '#f0f0f0', '#d0d0d0', '#a0a0a0',
+//     '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1'
+//   ]
+  
+//   const warmColors = [
+//     '#ffb366', '#ff9933', '#ff7f00', '#ff6600',
+//     '#ff4500', '#ff3300', '#ff6666', '#ff9999'
+//   ]
+
+//   const handleTextureChange = (index) => {
+//     console.log('Texture changed to:', index)
+//     setActiveTexture(index)
+//   }
+
+//   const handleColorChange = (color) => {
+//     console.log('Light color changed to:', color)
+//     setLightColor(color)
+//   }
+
+//   const handleIntensityChange = (intensity) => {
+//     console.log('Light intensity changed to:', intensity)
+//     setLightIntensity(intensity)
+//   }
+
+//   // Mobile UI
+//   if (isMobile) {
+//     return (
+//       <>
+//         {/* Mobile Menu Toggle */}
+//         <div className="mobile-toggle">
+//           <button
+//             className="toggle-btn"
+//             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+//           >
+//             <span className="toggle-icon">{mobileMenuOpen ? '✕' : '⚙️'}</span>
+//             <span className="toggle-text">Configure</span>
+//           </button>
+//         </div>
+
+//         {/* Mobile Menu Overlay */}
+//         {mobileMenuOpen && (
+//           <div className="mobile-overlay">
+//             <div className="mobile-panel">
+//               <div className="mobile-header">
+//                 <h2>Modern Table</h2>
+//                 <button 
+//                   className="close-btn"
+//                   onClick={() => setMobileMenuOpen(false)}
+//                 >
+//                   ✕
+//                 </button>
+//               </div>
+
+//               {/* Tab Navigation */}
+//               <div className="mobile-tabs">
+//                 <button
+//                   className={`tab-btn ${activeTab === 'materials' ? 'active' : ''}`}
+//                   onClick={() => setActiveTab('materials')}
+//                 >
+//                   Materials
+//                 </button>
+//                 <button
+//                   className={`tab-btn ${activeTab === 'lighting' ? 'active' : ''}`}
+//                   onClick={() => setActiveTab('lighting')}
+//                 >
+//                   Lighting
+//                 </button>
+//               </div>
+
+//               <div className="mobile-content">
+//                 {activeTab === 'materials' && (
+//                   <>
+//                     {/* Materials */}
+//                     <div className="mobile-section">
+//                       <h3>Table Material</h3>
+//                       <div className="mobile-texture-grid">
+//                         {[1, 2, 3, 4].map((index) => (
+//                           <button
+//                             key={index}
+//                             className={`mobile-texture-btn ${activeTexture === index ? 'active' : ''}`}
+//                             onClick={() => handleTextureChange(index)}
+//                           >
+//                             <span className="texture-number">{index}</span>
+//                             <span className="texture-name">{textureNames[index - 1]}</span>
+//                           </button>
+//                         ))}
+//                       </div>
+//                     </div>
+
+//                     {/* Table Light */}
+//                     <div className="mobile-section">
+//                       <h3>Table Light</h3>
+//                       <div className="mobile-control">
+//                         <label>Color</label>
+//                         <div className="mobile-color-grid">
+//                           {presetColors.map((color, index) => (
+//                             <button
+//                               key={index}
+//                               className={`mobile-color-btn ${lightColor === color ? 'active' : ''}`}
+//                               style={{ backgroundColor: color }}
+//                               onClick={() => handleColorChange(color)}
+//                             />
+//                           ))}
+//                         </div>
+//                       </div>
+
+//                       <div className="mobile-dual-control">
+//                         <div className="mobile-control">
+//                           <label>Custom</label>
+//                           <input
+//                             type="color"
+//                             value={lightColor}
+//                             onChange={(e) => handleColorChange(e.target.value)}
+//                             className="mobile-color-input"
+//                           />
+//                         </div>
+//                         <div className="mobile-control">
+//                           <label>Intensity</label>
+//                           <div className="mobile-slider-container">
+//                             <input
+//                               type="range"
+//                               min="0.5"
+//                               max="5"
+//                               step="0.1"
+//                               value={lightIntensity}
+//                               onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
+//                               className="mobile-slider"
+//                             />
+//                             <span className="mobile-slider-value">{lightIntensity.toFixed(1)}</span>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </>
+//                 )}
+
+//                 {activeTab === 'lighting' && (
+//                   <>
+//                     {/* Under-Table Lights */}
+//                     <div className="mobile-section">
+//                       <h3>Under-Table Lights</h3>
+//                       <div className="mobile-control">
+//                         <label>Warm Colors</label>
+//                         <div className="mobile-color-grid">
+//                           {warmColors.map((color, index) => (
+//                             <button
+//                               key={index}
+//                               className={`mobile-color-btn ${rectColor === color ? 'active' : ''}`}
+//                               style={{ backgroundColor: color }}
+//                               onClick={() => setRectColor(color)}
+//                             />
+//                           ))}
+//                         </div>
+//                       </div>
+
+//                       <div className="mobile-dual-control">
+//                         <div className="mobile-control">
+//                           <label>Custom</label>
+//                           <input
+//                             type="color"
+//                             value={rectColor}
+//                             onChange={(e) => setRectColor(e.target.value)}
+//                             className="mobile-color-input"
+//                           />
+//                         </div>
+//                         <div className="mobile-control">
+//                           <label>Intensity</label>
+//                           <div className="mobile-slider-container">
+//                             <input
+//                               type="range"
+//                               min="0"
+//                               max="20"
+//                               step="0.5"
+//                               value={rectIntensity}
+//                               onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
+//                               className="mobile-slider"
+//                             />
+//                             <span className="mobile-slider-value">{rectIntensity.toFixed(1)}</span>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+
+//                     {/* Spotlight */}
+//                     <div className="mobile-section">
+//                       <h3>Main Spotlight</h3>
+//                       <div className="mobile-control">
+//                         <label>Intensity</label>
+//                         <div className="mobile-slider-container">
+//                           <input
+//                             type="range"
+//                             min="0"
+//                             max="100"
+//                             step="1"
+//                             value={spotlightIntensity}
+//                             onChange={(e) => setSpotlightIntensity(parseFloat(e.target.value))}
+//                             className="mobile-slider"
+//                           />
+//                           <span className="mobile-slider-value">{spotlightIntensity.toFixed(0)}</span>
+//                         </div>
+//                       </div>
+
+//                       <div className="mobile-dual-control">
+//                         <div className="mobile-control">
+//                           <label>Angle</label>
+//                           <div className="mobile-slider-container">
+//                             <input
+//                               type="range"
+//                               min="0.1"
+//                               max="1.5"
+//                               step="0.05"
+//                               value={spotlightAngle}
+//                               onChange={(e) => setSpotlightAngle(parseFloat(e.target.value))}
+//                               className="mobile-slider"
+//                             />
+//                             <span className="mobile-slider-value">{spotlightAngle.toFixed(2)}</span>
+//                           </div>
+//                         </div>
+//                         <div className="mobile-control">
+//                           <label>Distance</label>
+//                           <div className="mobile-slider-container">
+//                             <input
+//                               type="range"
+//                               min="5"
+//                               max="100"
+//                               step="1"
+//                               value={spotlightDistance}
+//                               onChange={(e) => setSpotlightDistance(parseFloat(e.target.value))}
+//                               className="mobile-slider"
+//                             />
+//                             <span className="mobile-slider-value">{spotlightDistance.toFixed(0)}</span>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         <style jsx>{`
+//           .mobile-toggle {
+//             position: fixed;
+//             bottom: 20px;
+//             left: 50%;
+//             transform: translateX(-50%);
+//             z-index: 1000;
+//           }
+
+//           .toggle-btn {
+//             background: rgba(0, 0, 0, 0.85);
+//             backdrop-filter: blur(20px);
+//             border: 1px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 25px;
+//             padding: 12px 20px;
+//             color: white;
+//             cursor: pointer;
+//             transition: all 0.3s ease;
+//             display: flex;
+//             align-items: center;
+//             gap: 8px;
+//             font-size: 14px;
+//             font-weight: 500;
+//           }
+
+//           .toggle-btn:hover {
+//             background: rgba(0, 0, 0, 0.9);
+//             transform: scale(1.05);
+//           }
+
+//           .toggle-icon {
+//             font-size: 16px;
+//           }
+
+//           .mobile-overlay {
+//             position: fixed;
+//             top: 0;
+//             left: 0;
+//             right: 0;
+//             bottom: 0;
+//             background: rgba(0, 0, 0, 0.8);
+//             backdrop-filter: blur(10px);
+//             z-index: 1001;
+//             display: flex;
+//             align-items: flex-end;
+//           }
+
+//           .mobile-panel {
+//             width: 100%;
+//             max-height: 80vh;
+//             background: rgba(0, 0, 0, 0.95);
+//             border-radius: 20px 20px 0 0;
+//             color: white;
+//             overflow-y: auto;
+//           }
+
+//           .mobile-header {
+//             display: flex;
+//             justify-content: space-between;
+//             align-items: center;
+//             padding: 20px;
+//             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+//           }
+
+//           .mobile-header h2 {
+//             margin: 0;
+//             font-size: 20px;
+//             font-weight: 600;
+//           }
+
+//           .close-btn {
+//             background: rgba(255, 255, 255, 0.1);
+//             border: none;
+//             border-radius: 50%;
+//             width: 32px;
+//             height: 32px;
+//             color: white;
+//             cursor: pointer;
+//             font-size: 16px;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//           }
+
+//           .mobile-tabs {
+//             display: flex;
+//             padding: 0 20px;
+//             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+//           }
+
+//           .tab-btn {
+//             flex: 1;
+//             background: none;
+//             border: none;
+//             padding: 12px;
+//             color: rgba(255, 255, 255, 0.7);
+//             cursor: pointer;
+//             border-bottom: 2px solid transparent;
+//             transition: all 0.3s ease;
+//           }
+
+//           .tab-btn.active {
+//             color: white;
+//             border-bottom-color: white;
+//           }
+
+//           .mobile-content {
+//             padding: 20px;
+//             display: flex;
+//             flex-direction: column;
+//             gap: 24px;
+//           }
+
+//           .mobile-section {
+//             display: flex;
+//             flex-direction: column;
+//             gap: 12px;
+//           }
+
+//           .mobile-section h3 {
+//             margin: 0;
+//             font-size: 16px;
+//             font-weight: 600;
+//             color: rgba(255, 255, 255, 0.9);
+//             text-transform: uppercase;
+//             letter-spacing: 0.5px;
+//           }
+
+//           .mobile-texture-grid {
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;
+//             gap: 12px;
+//           }
+
+//           .mobile-texture-btn {
+//             background: rgba(255, 255, 255, 0.05);
+//             border: 1px solid rgba(255, 255, 255, 0.1);
+//             border-radius: 12px;
+//             padding: 16px;
+//             color: rgba(255, 255, 255, 0.8);
+//             cursor: pointer;
+//             transition: all 0.2s ease;
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             gap: 4px;
+//           }
+
+//           .mobile-texture-btn:hover,
+//           .mobile-texture-btn.active {
+//             background: rgba(255, 255, 255, 0.15);
+//             border-color: rgba(255, 255, 255, 0.3);
+//             color: white;
+//           }
+
+//           .texture-number {
+//             font-weight: 600;
+//             font-size: 18px;
+//           }
+
+//           .texture-name {
+//             font-size: 12px;
+//             opacity: 0.8;
+//           }
+
+//           .mobile-control {
+//             display: flex;
+//             flex-direction: column;
+//             gap: 8px;
+//           }
+
+//           .mobile-control label {
+//             font-size: 12px;
+//             font-weight: 500;
+//             color: rgba(255, 255, 255, 0.7);
+//             text-transform: uppercase;
+//             letter-spacing: 0.5px;
+//           }
+
+//           .mobile-dual-control {
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;
+//             gap: 16px;
+//           }
+
+//           .mobile-color-grid {
+//             display: grid;
+//             grid-template-columns: repeat(4, 1fr);
+//             gap: 8px;
+//           }
+
+//           .mobile-color-btn {
+//             width: 40px;
+//             height: 40px;
+//             border: 2px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 8px;
+//             cursor: pointer;
+//             transition: all 0.2s ease;
+//           }
+
+//           .mobile-color-btn:hover,
+//           .mobile-color-btn.active {
+//             border-color: white;
+//             transform: scale(1.1);
+//           }
+
+//           .mobile-color-input {
+//             width: 40px;
+//             height: 40px;
+//             border: 2px solid rgba(255, 255, 255, 0.2);
+//             border-radius: 8px;
+//             background: none;
+//             cursor: pointer;
+//           }
+
+//           .mobile-slider-container {
+//             display: flex;
+//             align-items: center;
+//             gap: 8px;
+//           }
+
+//           .mobile-slider {
+//             flex: 1;
+//             height: 6px;
+//             background: rgba(255, 255, 255, 0.2);
+//             border-radius: 3px;
+//             outline: none;
+//             cursor: pointer;
+//             -webkit-appearance: none;
+//             appearance: none;
+//           }
+
+//           .mobile-slider::-webkit-slider-thumb {
+//             -webkit-appearance: none;
+//             appearance: none;
+//             width: 20px;
+//             height: 20px;
+//             background: white;
+//             border-radius: 50%;
+//             cursor: pointer;
+//           }
+
+//           .mobile-slider-value {
+//             font-size: 12px;
+//             color: rgba(255, 255, 255, 0.8);
+//             font-family: monospace;
+//             min-width: 40px;
+//             text-align: right;
+//           }
+//         `}</style>
+//       </>
+//     )
+//   }
+
+//   // Desktop UI
+//   return (
+//     <>
+//       <div className="glass-panel">
+//         <div className="panel-header">
+//           <h2 className="panel-title">
+//             {isCollapsed ? 'MT' : 'Modern Table'}
+//           </h2>
+//           <button 
+//             className="collapse-btn"
+//             onClick={() => setIsCollapsed(!isCollapsed)}
+//           >
+//             {isCollapsed ? '←' : '→'}
+//           </button>
+//         </div>
+        
+//         {!isCollapsed && (
+//           <div className="panel-content">
+//             {/* Tab Navigation */}
+//             <div className="tab-nav">
+//               <button
+//                 className={`tab-btn ${activeTab === 'materials' ? 'active' : ''}`}
+//                 onClick={() => setActiveTab('materials')}
+//               >
+//                 Materials
+//               </button>
+//               <button
+//                 className={`tab-btn ${activeTab === 'lighting' ? 'active' : ''}`}
+//                 onClick={() => setActiveTab('lighting')}
+//               >
+//                 Lighting
+//               </button>
+//             </div>
+
+//             {activeTab === 'materials' && (
+//               <>
+//                 {/* Materials */}
+//                 <div className="section">
+//                   <h3 className="section-title">Table Material</h3>
+//                   <div className="texture-grid">
+//                     {[1, 2, 3, 4].map((index) => (
+//                       <button
+//                         key={index}
+//                         className={`texture-btn ${activeTexture === index ? 'active' : ''}`}
+//                         onClick={() => handleTextureChange(index)}
+//                       >
+//                         <span className="texture-number">{index}</span>
+//                         <span className="texture-name">{textureNames[index - 1]}</span>
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+
+//                 {/* Table Light */}
+//                 <div className="section">
+//                   <h3 className="section-title">Table Light</h3>
+                  
+//                   <div className="control">
+//                     <label className="control-label">Color</label>
+//                     <div className="color-grid">
+//                       {presetColors.map((color, index) => (
+//                         <button
+//                           key={index}
+//                           className={`color-btn ${lightColor === color ? 'active' : ''}`}
+//                           style={{ backgroundColor: color }}
+//                           onClick={() => handleColorChange(color)}
+//                         />
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div className="dual-control">
+//                     <div className="control">
+//                       <label className="control-label">Custom</label>
+//                       <input
+//                         type="color"
+//                         value={lightColor}
+//                         onChange={(e) => handleColorChange(e.target.value)}
+//                         className="color-input"
+//                       />
+//                     </div>
+//                     <div className="control">
+//                       <label className="control-label">Intensity</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="0.5"
+//                           max="5"
+//                           step="0.1"
+//                           value={lightIntensity}
+//                           onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{lightIntensity.toFixed(1)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </>
+//             )}
+
+//             {activeTab === 'lighting' && (
+//               <>
+//                 {/* Under-Table Lights */}
+//                 <div className="section">
+//                   <h3 className="section-title">Under-Table Lights</h3>
+                  
+//                   <div className="control">
+//                     <label className="control-label">Warm Colors</label>
+//                     <div className="color-grid">
+//                       {warmColors.map((color, index) => (
+//                         <button
+//                           key={index}
+//                           className={`color-btn ${rectColor === color ? 'active' : ''}`}
+//                           style={{ backgroundColor: color }}
+//                           onClick={() => setRectColor(color)}
+//                         />
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div className="dual-control">
+//                     <div className="control">
+//                       <label className="control-label">Custom</label>
+//                       <input
+//                         type="color"
+//                         value={rectColor}
+//                         onChange={(e) => setRectColor(e.target.value)}
+//                         className="color-input"
+//                       />
+//                     </div>
+//                     <div className="control">
+//                       <label className="control-label">Intensity</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="0"
+//                           max="20"
+//                           step="0.5"
+//                           value={rectIntensity}
+//                           onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{rectIntensity.toFixed(1)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Spotlight Controls */}
+//                 <div className="section">
+//                   <h3 className="section-title">Main Spotlight</h3>
+                  
+//                   <div className="control">
+//                     <label className="control-label">Intensity</label>
+//                     <div className="slider-container">
+//                       <input
+//                         type="range"
+//                         min="0"
+//                         max="100"
+//                         step="1"
+//                         value={spotlightIntensity}
+//                         onChange={(e) => setSpotlightIntensity(parseFloat(e.target.value))}
+//                         className="slider"
+//                       />
+//                       <span className="slider-value">{spotlightIntensity.toFixed(0)}</span>
+//                     </div>
+//                   </div>
+
+//                   <div className="dual-control">
+//                     <div className="control">
+//                       <label className="control-label">Angle</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="0.1"
+//                           max="1.5"
+//                           step="0.05"
+//                           value={spotlightAngle}
+//                           onChange={(e) => setSpotlightAngle(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{spotlightAngle.toFixed(2)}</span>
+//                       </div>
+//                     </div>
+//                     <div className="control">
+//                       <label className="control-label">Penumbra</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="0"
+//                           max="1"
+//                           step="0.05"
+//                           value={spotlightPenumbra}
+//                           onChange={(e) => setSpotlightPenumbra(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{spotlightPenumbra.toFixed(2)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   <div className="dual-control">
+//                     <div className="control">
+//                       <label className="control-label">Distance</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="5"
+//                           max="100"
+//                           step="1"
+//                           value={spotlightDistance}
+//                           onChange={(e) => setSpotlightDistance(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{spotlightDistance.toFixed(0)}</span>
+//                       </div>
+//                     </div>
+//                     <div className="control">
+//                       <label className="control-label">Decay</label>
+//                       <div className="slider-container">
+//                         <input
+//                           type="range"
+//                           min="0"
+//                           max="5"
+//                           step="0.1"
+//                           value={spotlightDecay}
+//                           onChange={(e) => setSpotlightDecay(parseFloat(e.target.value))}
+//                           className="slider"
+//                         />
+//                         <span className="slider-value">{spotlightDecay.toFixed(1)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   {/* Position Controls */}
+//                   <div className="control">
+//                     <label className="control-label">Position</label>
+//                     <div className="position-controls">
+//                       <div className="position-axis">
+//                         <label>X</label>
+//                         <input
+//                           type="range"
+//                           min="-20"
+//                           max="20"
+//                           step="0.5"
+//                           value={spotlightPosition[0]}
+//                           onChange={(e) => setSpotlightPosition([parseFloat(e.target.value), spotlightPosition[1], spotlightPosition[2]])}
+//                           className="slider small"
+//                         />
+//                         <span className="axis-value">{spotlightPosition[0]}</span>
+//                       </div>
+//                       <div className="position-axis">
+//                         <label>Y</label>
+//                         <input
+//                           type="range"
+//                           min="5"
+//                           max="30"
+//                           step="0.5"
+//                           value={spotlightPosition[1]}
+//                           onChange={(e) => setSpotlightPosition([spotlightPosition[0], parseFloat(e.target.value), spotlightPosition[2]])}
+//                           className="slider small"
+//                         />
+//                         <span className="axis-value">{spotlightPosition[1]}</span>
+//                       </div>
+//                       <div className="position-axis">
+//                         <label>Z</label>
+//                         <input
+//                           type="range"
+//                           min="-20"
+//                           max="20"
+//                           step="0.5"
+//                           value={spotlightPosition[2]}
+//                           onChange={(e) => setSpotlightPosition([spotlightPosition[0], spotlightPosition[1], parseFloat(e.target.value)])}
+//                           className="slider small"
+//                         />
+//                         <span className="axis-value">{spotlightPosition[2]}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </>
+//             )}
+
+//             {/* Actions */}
+//             <div className="actions">
+//               <button
+//                 className="action-btn"
+//                 onClick={() => {
+//                   console.log('Resetting to modern defaults')
+//                   setActiveTexture(1)
+//                   setLightColor('#ffffff')
+//                   setLightIntensity(2)
+//                   setRectIntensity(8)
+//                   setRectColor('#ff9933')
+//                   setSpotlightIntensity(30)
+//                   setSpotlightPosition([0, 15, -10])
+//                   setSpotlightAngle(0.8)
+//                   setSpotlightPenumbra(0.3)
+//                   setSpotlightDistance(50)
+//                   setSpotlightDecay(1.0)
+//                 }}
+//               >
+//                 Reset
+//               </button>
+//               <button
+//                 className="action-btn primary"
+//                 onClick={() => {
+//                   const config = { 
+//                     activeTexture, 
+//                     lightColor, 
+//                     lightIntensity,
+//                     rectIntensity,
+//                     rectColor,
+//                     spotlight: {
+//                       intensity: spotlightIntensity,
+//                       position: spotlightPosition,
+//                       angle: spotlightAngle,
+//                       penumbra: spotlightPenumbra,
+//                       distance: spotlightDistance,
+//                       decay: spotlightDecay
+//                     }
+//                   }
+//                   console.log('Modern table configuration saved:', config)
+//                 }}
+//               >
+//                 Save
+//               </button>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <style jsx>{`
+//         .glass-panel {
+//           position: fixed;
+//           top: 16px;
+//           right: 16px;
+//           width: ${isCollapsed ? '56px' : '320px'};
+//           max-height: 90vh;
+//           background: rgba(2, 0, 0, 0.85);
+//           backdrop-filter: blur(20px);
+//           border: 1px solid rgba(0, 0, 0, 0.56);
+//           border-radius: 16px;
+//           padding: 16px;
+//           color: white;
+//           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+//           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+//           z-index: 1000;
+//           overflow-y: auto;
+//           scrollbar-width: none;
+//           -ms-overflow-style: none;
+//         }
+
+//         .glass-panel::-webkit-scrollbar {
+//           display: none;
+//         }
+
+//         .panel-header {
+//           display: flex;
+//           justify-content: space-between;
+//           align-items: center;
+//           margin-bottom: ${isCollapsed ? '0' : '16px'};
+//         }
+
+//         .panel-title {
+//           margin: 0;
+//           font-size: 16px;
+//           font-weight: 600;
+//           color: white;
+//         }
+
+//         .collapse-btn {
+//           background: rgba(255, 255, 255, 0.1);
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 8px;
+//           width: 24px;
+//           height: 24px;
+//           color: white;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           font-size: 12px;
+//           display: flex;
+//           align-items: center;
+//           justify-content: center;
+//         }
+
+//         .collapse-btn:hover {
+//           background: rgba(255, 255, 255, 0.2);
+//           transform: scale(1.1);
+//         }
+
+//         .panel-content {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 16px;
+//         }
+
+//         .tab-nav {
+//           display: flex;
+//           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+//           margin-bottom: 8px;
+//         }
+
+//         .tab-btn {
+//           flex: 1;
+//           background: none;
+//           border: none;
+//           padding: 8px 12px;
+//           color: rgba(255, 255, 255, 0.7);
+//           cursor: pointer;
+//           border-bottom: 2px solid transparent;
+//           transition: all 0.3s ease;
+//           font-size: 11px;
+//           font-weight: 500;
+//         }
+
+//         .tab-btn.active {
+//           color: white;
+//           border-bottom-color: white;
+//         }
+
+//         .section {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 8px;
+//         }
+
+//         .section-title {
+//           margin: 0;
+//           font-size: 12px;
+//           font-weight: 600;
+//           color: rgba(255, 255, 255, 0.9);
+//           text-transform: uppercase;
+//           letter-spacing: 0.5px;
+//         }
+
+//         .texture-grid {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 6px;
+//         }
+
+//         .texture-btn {
+//           background: rgba(255, 255, 255, 0.05);
+//           border: 1px solid rgba(255, 255, 255, 0.1);
+//           border-radius: 8px;
+//           padding: 8px;
+//           color: rgba(255, 255, 255, 0.8);
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           display: flex;
+//           flex-direction: column;
+//           align-items: center;
+//           gap: 2px;
+//           font-size: 11px;
+//         }
+
+//         .texture-btn:hover {
+//           background: rgba(255, 255, 255, 0.1);
+//           border-color: rgba(255, 255, 255, 0.3);
+//         }
+
+//         .texture-btn.active {
+//           background: rgba(255, 255, 255, 0.2);
+//           border-color: rgba(255, 255, 255, 0.4);
+//           color: white;
+//         }
+
+//         .texture-number {
+//           font-weight: 600;
+//           font-size: 12px;
+//         }
+
+//         .texture-name {
+//           font-size: 9px;
+//           opacity: 0.9;
+//         }
+
+//         .control {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 6px;
+//         }
+
+//         .control-label {
+//           font-size: 10px;
+//           font-weight: 500;
+//           color: rgba(255, 255, 255, 0.7);
+//           text-transform: uppercase;
+//           letter-spacing: 0.5px;
+//         }
+
+//         .color-grid {
+//           display: grid;
+//           grid-template-columns: repeat(4, 1fr);
+//           gap: 4px;
+//         }
+
+//         .color-btn {
+//           width: 24px;
+//           height: 24px;
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 6px;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//         }
+
+//         .color-btn:hover {
+//           transform: scale(1.1);
+//           border-color: rgba(255, 255, 255, 0.4);
+//         }
+
+//         .color-btn.active {
+//           border-width: 2px;
+//           border-color: white;
+//           transform: scale(1.05);
+//         }
+
+//         .dual-control {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 12px;
+//           align-items: end;
+//         }
+
+//         .color-input {
+//           width: 32px;
+//           height: 32px;
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 6px;
+//           background: none;
+//           cursor: pointer;
+//         }
+
+//         .slider-container {
+//           display: flex;
+//           align-items: center;
+//           gap: 8px;
+//         }
+
+//         .slider {
+//           flex: 1;
+//           height: 4px;
+//           background: rgba(255, 255, 255, 0.2);
+//           border-radius: 2px;
+//           outline: none;
+//           cursor: pointer;
+//           -webkit-appearance: none;
+//           appearance: none;
+//         }
+
+//         .slider.small {
+//           height: 3px;
+//         }
+
+//         .slider::-webkit-slider-thumb {
+//           -webkit-appearance: none;
+//           appearance: none;
+//           width: 16px;
+//           height: 16px;
+//           background: white;
+//           border-radius: 50%;
+//           cursor: pointer;
+//         }
+
+//         .slider.small::-webkit-slider-thumb {
+//           width: 12px;
+//           height: 12px;
+//         }
+
+//         .slider::-moz-range-thumb {
+//           width: 16px;
+//           height: 16px;
+//           background: white;
+//           border-radius: 50%;
+//           cursor: pointer;
+//           border: none;
+//         }
+
+//         .slider-value {
+//           font-size: 10px;
+//           color: rgba(255, 255, 255, 0.8);
+//           font-family: monospace;
+//           min-width: 32px;
+//           text-align: right;
+//         }
+
+//         .position-controls {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 4px;
+//         }
+
+//         .position-axis {
+//           display: flex;
+//           align-items: center;
+//           gap: 8px;
+//         }
+
+//         .position-axis label {
+//           min-width: 12px;
+//           font-size: 9px;
+//           color: rgba(255, 255, 255, 0.6);
+//         }
+
+//         .axis-value {
+//           font-size: 9px;
+//           color: rgba(255, 255, 255, 0.8);
+//           font-family: monospace;
+//           min-width: 24px;
+//           text-align: right;
+//         }
+
+//         .actions {
+//           display: flex;
+//           gap: 6px;
+//         }
+
+//         .action-btn {
+//           flex: 1;
+//           background: rgba(255, 255, 255, 0.1);
+//           border: 1px solid rgba(255, 255, 255, 0.2);
+//           border-radius: 8px;
+//           padding: 8px 12px;
+//           color: white;
+//           cursor: pointer;
+//           transition: all 0.2s ease;
+//           font-size: 11px;
+//           font-weight: 500;
+//         }
+
+//         .action-btn:hover {
+//           background: rgba(255, 255, 255, 0.15);
+//           transform: translateY(-1px);
+//         }
+
+//         .action-btn.primary {
+//           background: rgba(255, 255, 255, 0.2);
+//           border-color: rgba(255, 255, 255, 0.3);
+//         }
+//       `}</style>
+//     </>
+//   )
+// }
+
+// // Hook to detect mobile devices
+// function useIsMobile() {
+//   const [isMobile, setIsMobile] = useState(false)
+
+//   useEffect(() => {
+//     const checkMobile = () => {
+//       setIsMobile(window.innerWidth <= 768)
+//     }
+    
+//     checkMobile()
+//     window.addEventListener('resize', checkMobile)
+    
+//     return () => window.removeEventListener('resize', checkMobile)
+//   }, [])
+
+//   return isMobile
+// }
+
+// export default function FurnitureConfigurator() {
+//   const [activeTexture, setActiveTexture] = useState(1)
+//   const [lightColor, setLightColor] = useState('#ffffff')
+//   const [lightIntensity, setLightIntensity] = useState(2)
+  
+//   // Modern lighting states
+//   const [rectIntensity, setRectIntensity] = useState(8)
+//   const [rectColor, setRectColor] = useState('#ff9933') // Warm orange
+  
+//   // Spotlight states with large values for experimentation
+//   const [spotlightIntensity, setSpotlightIntensity] = useState(30)
+//   const [spotlightPosition, setSpotlightPosition] = useState([0, 15, -10])
+//   const [spotlightAngle, setSpotlightAngle] = useState(0.8)
+//   const [spotlightPenumbra, setSpotlightPenumbra] = useState(0.3)
+//   const [spotlightDistance, setSpotlightDistance] = useState(50)
+//   const [spotlightDecay, setSpotlightDecay] = useState(1.0)
+  
+//   const isMobile = useIsMobile()
+
+//   // Dynamic camera settings based on device
+//   const cameraPosition = isMobile ? [8, 8, 8] : [5, 5, 5]
+//   const cameraFov = isMobile ? 55 : 45
+
+//   return (
+//     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+//       <Canvas
+//         camera={{ position: cameraPosition, fov: cameraFov }}
+//         shadows
+//         gl={{
+//           antialias: true,
+//           alpha: false,
+//           powerPreference: "high-performance",
+//           preserveDrawingBuffer: true
+//         }}
+//         dpr={[1, 2]}
+//       >
+//         {/* Dark background for modern ambience */}
+//         <color attach="background" args={['#050505']} />
+        
+//         <Suspense fallback={<Loader />}>
+//           {/* Reflective Floor */}
+//           <ReflectiveFloor />
+       
+//           <Model
+//             activeTexture={activeTexture}
+//             lightColor={lightColor}
+//             lightIntensity={lightIntensity}
+//           />
+
+//           {/* Modern Under-Table Lighting Setup */}
+//           <ModernLighting
+//             rectIntensity={rectIntensity}
+//             rectColor={rectColor}
+//             spotlightIntensity={spotlightIntensity}
+//             spotlightPosition={spotlightPosition}
+//             spotlightAngle={spotlightAngle}
+//             spotlightPenumbra={spotlightPenumbra}
+//             spotlightDistance={spotlightDistance}
+//             spotlightDecay={spotlightDecay}
+//           />
+          
+//           <EffectComposer>
+//             {/* <Bloom
+//               intensity={2.3}
+//               luminanceThreshold={0.8}
+//               luminanceSmoothing={20}
+//               height={100}
+//             /> */}
+//           </EffectComposer>
+  
+//         </Suspense>
+        
+//         <OrbitControls
+//           enablePan={false}
+//           enableZoom={true}
+//           enableRotate={true}
+//           minDistance={isMobile ? 5 : 3}
+//           maxDistance={isMobile ? 20 : 15}
+//           minPolarAngle={Math.PI / 6}
+//           maxPolarAngle={Math.PI / 2}
+//           enableDamping={true}
+//           dampingFactor={0.05}
+//         />
+//       </Canvas>
+      
+//       <UI
+//         activeTexture={activeTexture}
+//         setActiveTexture={setActiveTexture}
+//         lightColor={lightColor}
+//         setLightColor={setLightColor}
+//         lightIntensity={lightIntensity}
+//         setLightIntensity={setLightIntensity}
+//         rectIntensity={rectIntensity}
+//         setRectIntensity={setRectIntensity}
+//         rectColor={rectColor}
+//         setRectColor={setRectColor}
+//         spotlightIntensity={spotlightIntensity}
+//         setSpotlightIntensity={setSpotlightIntensity}
+//         spotlightPosition={spotlightPosition}
+//         setSpotlightPosition={setSpotlightPosition}
+//         spotlightAngle={spotlightAngle}
+//         setSpotlightAngle={setSpotlightAngle}
+//         spotlightPenumbra={spotlightPenumbra}
+//         setSpotlightPenumbra={setSpotlightPenumbra}
+//         spotlightDistance={spotlightDistance}
+//         setSpotlightDistance={setSpotlightDistance}
+//         spotlightDecay={spotlightDecay}
+//         setSpotlightDecay={setSpotlightDecay}
+//         isMobile={isMobile}
+//       />
+//     </div>
+//   )
+// }
+
+// // Preload the model
+// useGLTF.preload('/ramses.glb')
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { Suspense, useState, useRef, useEffect, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import {
@@ -2929,10 +5670,14 @@ import {
   Html,
   useGLTF,
   useTexture,
-  ContactShadows
+  MeshReflectorMaterial
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
+
+// Initialize RectAreaLight uniforms
+RectAreaLightUniformsLib.init()
 
 function Loader() {
   const { progress } = useProgress()
@@ -2969,97 +5714,157 @@ function Loader() {
   )
 }
 
-// Optimized Lighting Component with Fixed Values
-function Lighting() {
-  // Fixed optimal lighting values from your console output
-  const lightingConfig = {
-    ambient: {
-      intensity: 0.2
-    },
-    keyLight: {
-      intensity: 2.1,
-      position: [4.5, 25, 21.5],
-      color: '#ffffff'
-    },
-    fillLight: {
-      intensity: 1.1,
-      position: [-25, 3, -7.5],
-      color: '#f0f8ff'
-    },
-    rimLight: {
-      intensity: 1.7,
-      position: [7.5, 12.5, -17],
-      color: '#ffffff'
-    }
-  }
-
-  const directional1Ref = useRef()
-  const directional2Ref = useRef()
-  const directional3Ref = useRef()
-
+// Modern Under-Table Lighting Component with dual spotlights
+function ModernLighting({ 
+  rectIntensity,
+  rectColor,
+  spotlight1Intensity,
+  spotlight1Position,
+  spotlight2Intensity,
+  spotlight2Position,
+  spotlightAngle,
+  spotlightPenumbra
+}) {
+  const spotlight1Ref = useRef()
+  const spotlight2Ref = useRef()
+  const rectLight1Ref = useRef()
+  const rectLight2Ref = useRef()
+  const rectLight3Ref = useRef()
+  const rectLight4Ref = useRef()
+  
   useEffect(() => {
-    console.log('Optimized Table Lighting Applied:', lightingConfig)
-  }, [])
+    console.log('Modern Lighting Setup:', {
+      rectLights: {
+        intensity: rectIntensity,
+        color: rectColor
+      },
+      spotlight1: {
+        intensity: spotlight1Intensity,
+        position: spotlight1Position
+      },
+      spotlight2: {
+        intensity: spotlight2Intensity,
+        position: spotlight2Position
+      }
+    })
+  }, [rectIntensity, rectColor, spotlight1Intensity, spotlight1Position, spotlight2Intensity, spotlight2Position])
 
   return (
     <>
-      {/* Ambient Light - Soft base illumination */}
-      <ambientLight intensity={lightingConfig.ambient.intensity} color="#2c2c2c" />
+      {/* Ambient Light for general illumination */}
+      <ambientLight intensity={0.1} color="#1a1a1a" />
       
-      {/* Key Light - Main directional light */}
-      <directionalLight
-        ref={directional1Ref}
-        position={lightingConfig.keyLight.position}
-        intensity={lightingConfig.keyLight.intensity}
-        color={lightingConfig.keyLight.color}
+      {/* Rect Light 1 - Right side (light pointing left towards center) */}
+      <rectAreaLight
+        ref={rectLight1Ref}
+        width={4.5}
+        height={0.44}
+        intensity={rectIntensity}
+        color={rectColor}
+        position={[2.367, -0.875, 0.001]}
+        rotation={[0, -Math.PI / 2, 0]}
+      />
+      
+      {/* Rect Light 2 - Left side (light pointing right towards center) */}
+      <rectAreaLight
+        ref={rectLight2Ref}
+        width={4.5}
+        height={0.44}
+        intensity={rectIntensity}
+        color={rectColor}
+        position={[-2.382, -0.875, 0.001]}
+        rotation={[0, Math.PI / 2, 0]}
+      />
+      
+      {/* Rect Light 3 - Back (light pointing forward towards center) */}
+      <rectAreaLight
+        ref={rectLight3Ref}
+        width={4.5}
+        height={0.44}
+        intensity={rectIntensity}
+        color={rectColor}
+        position={[0.012, -0.875, 2.385]}
+        rotation={[0, Math.PI, 0]}
+      />
+      
+      {/* Rect Light 4 - Front (light pointing backward towards center) */}
+      <rectAreaLight
+        ref={rectLight4Ref}
+        width={4.5}
+        height={0.44}
+        intensity={rectIntensity}
+        color={rectColor}
+        position={[0.012, -0.875, -2.364]}
+        rotation={[0, 0, 0]}
+      />
+      
+      {/* Main Spotlight 1 from front */}
+      <spotLight
+        ref={spotlight1Ref}
+        position={spotlight1Position}
+        intensity={spotlight1Intensity}
+        angle={spotlightAngle}
+        penumbra={spotlightPenumbra}
+        distance={50}
+        decay={1}
+        color="#ffffff"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
+        shadow-camera-near={0.5}
         shadow-camera-far={50}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
         shadow-bias={-0.0001}
+        target-position={[0, 0, 0]}
       />
       
-      {/* Fill Light - Secondary light to fill shadows */}
-      <directionalLight
-        ref={directional2Ref}
-        position={lightingConfig.fillLight.position}
-        intensity={lightingConfig.fillLight.intensity}
-        color={lightingConfig.fillLight.color}
+      {/* Secondary Spotlight 2 from opposite side */}
+      <spotLight
+        ref={spotlight2Ref}
+        position={spotlight2Position}
+        intensity={spotlight2Intensity}
+        angle={spotlightAngle}
+        penumbra={spotlightPenumbra}
+        distance={50}
+        decay={1}
+        color="#ffffff"
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
+        shadow-camera-near={0.5}
         shadow-camera-far={50}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
-      />
-      
-      {/* Rim Light - Back light for edge definition */}
-      <directionalLight
-        ref={directional3Ref}
-        position={lightingConfig.rimLight.position}
-        intensity={lightingConfig.rimLight.intensity}
-        color={lightingConfig.rimLight.color}
-        castShadow
-        shadow-mapSize-width={512}
-        shadow-mapSize-height={512}
-        shadow-camera-far={30}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
+        shadow-bias={-0.0001}
+        target-position={[0, 0, 0]}
       />
     </>
   )
 }
 
-// Your Model component (unchanged)
-function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
+// Enhanced Reflective Floor Component
+function ReflectiveFloor() {
+  return (
+    <mesh position={[0, -1.1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[25, 25]} />
+      <MeshReflectorMaterial
+        blur={[400, 200]}
+        resolution={2048}
+        mixBlur={0.8}
+        mixStrength={1.2}
+        roughness={0.8}
+        depthScale={1.5}
+        minDepthThreshold={0.2}
+        maxDepthThreshold={1.8}
+        color="#0a0a0a"
+        metalness={0.9}
+        mirror={0.85}
+        distortion={0.1}
+        distortionScale={0.5}
+      />
+    </mesh>
+  )
+}
+
+// Your Model component with lightbase matching rectColor
+function Model({ activeTexture, rectColor, lightIntensity, ...props }) {
   const { nodes, materials } = useGLTF('/ramses.glb')
   const groupRef = useRef()
   const upbaseRef = useRef()
@@ -3126,18 +5931,18 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
     return materials
   }, [textures])
 
-  // Light material with emissive properties (for Lightbase)
+  // Light material with emissive properties matching rectColor
   const lightMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: lightColor,
-      emissive: lightColor,
+      color: rectColor,
+      emissive: rectColor,
       emissiveIntensity: lightIntensity,
       roughness: 0.1,
       metalness: 0.1,
       transparent: true,
       opacity: 0.9,
     })
-  }, [lightColor, lightIntensity])
+  }, [rectColor, lightIntensity])
 
   // Update materials immediately when texture changes
   useEffect(() => {
@@ -3155,24 +5960,24 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
     }
   }, [lightMaterial])
 
-  // Subtle breathing animation and light pulsing
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
-    }
+  // // Enhanced breathing animation and light pulsing
+  // useFrame((state) => {
+  //   if (groupl.current) {
+  //     groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+  //   }
     
-    if (lightbaseRef.current && lightbaseRef.current.material) {
-      const pulseFactor = Math.sin(state.clock.elapsedTime * 2) * 0.2
-      lightbaseRef.current.material.emissiveIntensity = lightIntensity + pulseFactor
+  //   if (lightbaseRef.current && lightbaseRef.current.material) {
+  //     const pulseFactor = Math.sin(state.clock.elapsedTime * 2) * 0.3
+  //     lightbaseRef.current.material.emissiveIntensity = lightIntensity + pulseFactor
       
-      // Add subtle color shift for warmth
-      const time = state.clock.elapsedTime * 0.5
-      const colorShift = Math.sin(time) * 0.05
-      lightbaseRef.current.material.emissive.setHex(
-        new THREE.Color(lightColor).offsetHSL(0, 0, colorShift).getHex()
-      )
-    }
-  })
+  //     // Add subtle color shift for warmth
+  //     const time = state.clock.elapsedTime * 0.5
+  //     const colorShift = Math.sin(time) * 0.1
+  //     lightbaseRef.current.material.emissive.setHex(
+  //       new THREE.Color(rectColor).offsetHSL(0, 0, colorShift).getHex()
+  //     )
+  //   }
+  // })
 
   return (
     <group ref={groupRef} {...props} dispose={null}>
@@ -3185,7 +5990,7 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
         material={tableMaterials[activeTexture]}
       />
       
-      {/* Lightbase - Light that glows and changes color */}
+      {/* Lightbase - Light that glows and changes color matching rectColor */}
       <mesh
         ref={lightbaseRef}
         castShadow
@@ -3197,38 +6002,44 @@ function Model({ activeTexture, lightColor, lightIntensity, ...props }) {
   )
 }
 
-// Simplified UI Component (no lighting controls)
+// Enhanced UI Component with dual spotlight controls
 function UI({ 
   activeTexture, 
   setActiveTexture, 
-  lightColor, 
-  setLightColor,
+  rectIntensity,
+  setRectIntensity,
+  rectColor,
+  setRectColor,
   lightIntensity,
   setLightIntensity,
+  spotlight1Intensity,
+  setSpotlight1Intensity,
+  spotlight1Position,
+  setSpotlight1Position,
+  spotlight2Intensity,
+  setSpotlight2Intensity,
+  spotlight2Position,
+  setSpotlight2Position,
+  spotlightAngle,
+  setSpotlightAngle,
+  spotlightPenumbra,
+  setSpotlightPenumbra,
   isMobile
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('materials')
 
   const textureNames = ['Wood1', 'Wood2', 'Wood3', 'Wood4']
-  const presetColors = [
-    '#ffffff', '#f0f0f0', '#d0d0d0', '#a0a0a0',
-    '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1'
+  
+  const warmColors = [
+    '#ffb366', '#ff9933', '#ff7f00', '#ff6600',
+    '#ff4500', '#ff3300', '#ff6666', '#ff9999'
   ]
 
   const handleTextureChange = (index) => {
     console.log('Texture changed to:', index)
     setActiveTexture(index)
-  }
-
-  const handleColorChange = (color) => {
-    console.log('Light color changed to:', color)
-    setLightColor(color)
-  }
-
-  const handleIntensityChange = (intensity) => {
-    console.log('Light intensity changed to:', intensity)
-    setLightIntensity(intensity)
   }
 
   // Mobile UI
@@ -3251,7 +6062,7 @@ function UI({
           <div className="mobile-overlay">
             <div className="mobile-panel">
               <div className="mobile-header">
-                <h2>Table Configurator</h2>
+                <h2>Modern Table</h2>
                 <button 
                   className="close-btn"
                   onClick={() => setMobileMenuOpen(false)}
@@ -3260,68 +6071,145 @@ function UI({
                 </button>
               </div>
 
+              {/* Tab Navigation */}
+              <div className="mobile-tabs">
+                <button
+                  className={`tab-btn ${activeTab === 'materials' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('materials')}
+                >
+                  Materials
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'lighting' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('lighting')}
+                >
+                  Lighting
+                </button>
+              </div>
+
               <div className="mobile-content">
-                {/* Materials */}
-                <div className="mobile-section">
-                  <h3>Table Material</h3>
-                  <div className="mobile-texture-grid">
-                    {[1, 2, 3, 4].map((index) => (
-                      <button
-                        key={index}
-                        className={`mobile-texture-btn ${activeTexture === index ? 'active' : ''}`}
-                        onClick={() => handleTextureChange(index)}
-                      >
-                        <span className="texture-number">{index}</span>
-                        <span className="texture-name">{textureNames[index - 1]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Model Lighting */}
-                <div className="mobile-section">
-                  <h3>Table Light</h3>
-                  <div className="mobile-control">
-                    <label>Color</label>
-                    <div className="mobile-color-grid">
-                      {presetColors.map((color, index) => (
-                        <button
-                          key={index}
-                          className={`mobile-color-btn ${lightColor === color ? 'active' : ''}`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => handleColorChange(color)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mobile-dual-control">
-                    <div className="mobile-control">
-                      <label>Custom</label>
-                      <input
-                        type="color"
-                        value={lightColor}
-                        onChange={(e) => handleColorChange(e.target.value)}
-                        className="mobile-color-input"
-                      />
-                    </div>
-                    <div className="mobile-control">
-                      <label>Intensity</label>
-                      <div className="mobile-slider-container">
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="5"
-                          step="0.1"
-                          value={lightIntensity}
-                          onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
-                          className="mobile-slider"
-                        />
-                        <span className="mobile-slider-value">{lightIntensity.toFixed(1)}</span>
+                {activeTab === 'materials' && (
+                  <>
+                    {/* Materials */}
+                    <div className="mobile-section">
+                      <h3>Table Material</h3>
+                      <div className="mobile-texture-grid">
+                        {[1, 2, 3, 4].map((index) => (
+                          <button
+                            key={index}
+                            className={`mobile-texture-btn ${activeTexture === index ? 'active' : ''}`}
+                            onClick={() => handleTextureChange(index)}
+                          >
+                            <span className="texture-number">{index}</span>
+                            <span className="texture-name">{textureNames[index - 1]}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
+
+                {activeTab === 'lighting' && (
+                  <>
+                    {/* Under-Table & Model Lights */}
+                    <div className="mobile-section">
+                      <h3>Under-Table & Model Lights</h3>
+                      <div className="mobile-control">
+                        <label>Warm Colors</label>
+                        <div className="mobile-color-grid">
+                          {warmColors.map((color, index) => (
+                            <button
+                              key={index}
+                              className={`mobile-color-btn ${rectColor === color ? 'active' : ''}`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => setRectColor(color)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mobile-dual-control">
+                        <div className="mobile-control">
+                          <label>Custom</label>
+                          <input
+                            type="color"
+                            value={rectColor}
+                            onChange={(e) => setRectColor(e.target.value)}
+                            className="mobile-color-input"
+                          />
+                        </div>
+                        <div className="mobile-control">
+                          <label>Under-Table</label>
+                          <div className="mobile-slider-container">
+                            <input
+                              type="range"
+                              min="0"
+                              max="30"
+                              step="1"
+                              value={rectIntensity}
+                              onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
+                              className="mobile-slider"
+                            />
+                            <span className="mobile-slider-value">{rectIntensity.toFixed(0)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mobile-control">
+                        <label>Model Light</label>
+                        <div className="mobile-slider-container">
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="8"
+                            step="0.1"
+                            value={lightIntensity}
+                            onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
+                            className="mobile-slider"
+                          />
+                          <span className="mobile-slider-value">{lightIntensity.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Spotlights */}
+                    <div className="mobile-section">
+                      <h3>Scene Lights</h3>
+                      <div className="mobile-dual-control">
+                        <div className="mobile-control">
+                          <label>Light 1</label>
+                          <div className="mobile-slider-container">
+                            <input
+                              type="range"
+                              min="0"
+                              max="50"
+                              step="1"
+                              value={spotlight1Intensity}
+                              onChange={(e) => setSpotlight1Intensity(parseFloat(e.target.value))}
+                              className="mobile-slider"
+                            />
+                            <span className="mobile-slider-value">{spotlight1Intensity.toFixed(0)}</span>
+                          </div>
+                        </div>
+                        <div className="mobile-control">
+                          <label>Light 2</label>
+                          <div className="mobile-slider-container">
+                            <input
+                              type="range"
+                              min="0"
+                              max="50"
+                              step="1"
+                              value={spotlight2Intensity}
+                              onChange={(e) => setSpotlight2Intensity(parseFloat(e.target.value))}
+                              className="mobile-slider"
+                            />
+                            <span className="mobile-slider-value">{spotlight2Intensity.toFixed(0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -3409,6 +6297,28 @@ function UI({
             display: flex;
             align-items: center;
             justify-content: center;
+          }
+
+          .mobile-tabs {
+            display: flex;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+          }
+
+          .tab-btn.active {
+            color: white;
+            border-bottom-color: white;
           }
 
           .mobile-content {
@@ -3559,13 +6469,13 @@ function UI({
     )
   }
 
-  // Desktop UI (simplified - no lighting tab)
+  // Desktop UI
   return (
     <>
       <div className="glass-panel">
         <div className="panel-header">
           <h2 className="panel-title">
-            {isCollapsed ? 'TC' : 'Table Configurator'}
+            {isCollapsed ? 'MT' : 'Modern Table'}
           </h2>
           <button 
             className="collapse-btn"
@@ -3577,78 +6487,287 @@ function UI({
         
         {!isCollapsed && (
           <div className="panel-content">
-            {/* Materials */}
-            <div className="section">
-              <h3 className="section-title">Table Material</h3>
-              <div className="texture-grid">
-                {[1, 2, 3, 4].map((index) => (
-                  <button
-                    key={index}
-                    className={`texture-btn ${activeTexture === index ? 'active' : ''}`}
-                    onClick={() => handleTextureChange(index)}
-                  >
-                    <span className="texture-number">{index}</span>
-                    <span className="texture-name">{textureNames[index - 1]}</span>
-                  </button>
-                ))}
-              </div>
+            {/* Tab Navigation */}
+            <div className="tab-nav">
+              <button
+                className={`tab-btn ${activeTab === 'materials' ? 'active' : ''}`}
+                onClick={() => setActiveTab('materials')}
+              >
+                Materials
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'lighting' ? 'active' : ''}`}
+                onClick={() => setActiveTab('lighting')}
+              >
+                Lighting
+              </button>
             </div>
 
-            {/* Model Lighting */}
-            <div className="section">
-              <h3 className="section-title">Table Light</h3>
-              
-              <div className="control">
-                <label className="control-label">Color</label>
-                <div className="color-grid">
-                  {presetColors.map((color, index) => (
-                    <button
-                      key={index}
-                      className={`color-btn ${lightColor === color ? 'active' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleColorChange(color)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="dual-control">
-                <div className="control">
-                  <label className="control-label">Custom</label>
-                  <input
-                    type="color"
-                    value={lightColor}
-                    onChange={(e) => handleColorChange(e.target.value)}
-                    className="color-input"
-                  />
-                </div>
-                <div className="control">
-                  <label className="control-label">Intensity</label>
-                  <div className="slider-container">
-                    <input
-                      type="range"
-                      min="0.5"
-                      max="5"
-                      step="0.1"
-                      value={lightIntensity}
-                      onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
-                      className="slider"
-                    />
-                    <span className="slider-value">{lightIntensity.toFixed(1)}</span>
+            {activeTab === 'materials' && (
+              <>
+                {/* Materials */}
+                <div className="section">
+                  <h3 className="section-title">Table Material</h3>
+                  <div className="texture-grid">
+                    {[1, 2, 3, 4].map((index) => (
+                      <button
+                        key={index}
+                        className={`texture-btn ${activeTexture === index ? 'active' : ''}`}
+                        onClick={() => handleTextureChange(index)}
+                      >
+                        <span className="texture-number">{index}</span>
+                        <span className="texture-name">{textureNames[index - 1]}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
+
+            {activeTab === 'lighting' && (
+              <>
+                {/* Under-Table & Model Lights */}
+                <div className="section">
+                  <h3 className="section-title">Under-Table & Model</h3>
+                  
+                  <div className="control">
+                    <label className="control-label">Warm Colors</label>
+                    <div className="color-grid">
+                      {warmColors.map((color, index) => (
+                        <button
+                          key={index}
+                          className={`color-btn ${rectColor === color ? 'active' : ''}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setRectColor(color)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="triple-control">
+                    <div className="control">
+                      <label className="control-label">Custom</label>
+                      <input
+                        type="color"
+                        value={rectColor}
+                        onChange={(e) => setRectColor(e.target.value)}
+                        className="color-input"
+                      />
+                    </div>
+                    <div className="control">
+                      <label className="control-label">Under-Table</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0"
+                          max="30"
+                          step="1"
+                          value={rectIntensity}
+                          onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{rectIntensity.toFixed(0)}</span>
+                      </div>
+                    </div>
+                    <div className="control">
+                      <label className="control-label">Model Light</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="8"
+                          step="0.1"
+                          value={lightIntensity}
+                          onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{lightIntensity.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spotlights Controls */}
+                <div className="section">
+                  <h3 className="section-title">Scene Lights</h3>
+                  
+                  <div className="dual-control">
+                    <div className="control">
+                      <label className="control-label">Light 1 Intensity</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0"
+                          max="50"
+                          step="1"
+                          value={spotlight1Intensity}
+                          onChange={(e) => setSpotlight1Intensity(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{spotlight1Intensity.toFixed(0)}</span>
+                      </div>
+                    </div>
+                    <div className="control">
+                      <label className="control-label">Light 2 Intensity</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0"
+                          max="50"
+                          step="1"
+                          value={spotlight2Intensity}
+                          onChange={(e) => setSpotlight2Intensity(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{spotlight2Intensity.toFixed(0)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="dual-control">
+                    <div className="control">
+                      <label className="control-label">Angle</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1.5"
+                          step="0.05"
+                          value={spotlightAngle}
+                          onChange={(e) => setSpotlightAngle(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{spotlightAngle.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="control">
+                      <label className="control-label">Penumbra</label>
+                      <div className="slider-container">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={spotlightPenumbra}
+                          onChange={(e) => setSpotlightPenumbra(parseFloat(e.target.value))}
+                          className="slider"
+                        />
+                        <span className="slider-value">{spotlightPenumbra.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Position Controls for Spotlight 1 */}
+                  <div className="control">
+                    <label className="control-label">Light 1 Position</label>
+                    <div className="position-controls">
+                      <div className="position-axis">
+                        <label>X</label>
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          step="0.5"
+                          value={spotlight1Position[0]}
+                          onChange={(e) => setSpotlight1Position([parseFloat(e.target.value), spotlight1Position[1], spotlight1Position[2]])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight1Position[0]}</span>
+                      </div>
+                      <div className="position-axis">
+                        <label>Y</label>
+                        <input
+                          type="range"
+                          min="5"
+                          max="30"
+                          step="0.5"
+                          value={spotlight1Position[1]}
+                          onChange={(e) => setSpotlight1Position([spotlight1Position[0], parseFloat(e.target.value), spotlight1Position[2]])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight1Position[1]}</span>
+                      </div>
+                      <div className="position-axis">
+                        <label>Z</label>
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          step="0.5"
+                          value={spotlight1Position[2]}
+                          onChange={(e) => setSpotlight1Position([spotlight1Position[0], spotlight1Position[1], parseFloat(e.target.value)])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight1Position[2]}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Position Controls for Spotlight 2 */}
+                  <div className="control">
+                    <label className="control-label">Light 2 Position</label>
+                    <div className="position-controls">
+                      <div className="position-axis">
+                        <label>X</label>
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          step="0.5"
+                          value={spotlight2Position[0]}
+                          onChange={(e) => setSpotlight2Position([parseFloat(e.target.value), spotlight2Position[1], spotlight2Position[2]])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight2Position[0]}</span>
+                      </div>
+                      <div className="position-axis">
+                        <label>Y</label>
+                        <input
+                          type="range"
+                          min="5"
+                          max="30"
+                          step="0.5"
+                          value={spotlight2Position[1]}
+                          onChange={(e) => setSpotlight2Position([spotlight2Position[0], parseFloat(e.target.value), spotlight2Position[2]])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight2Position[1]}</span>
+                      </div>
+                      <div className="position-axis">
+                        <label>Z</label>
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          step="0.5"
+                          value={spotlight2Position[2]}
+                          onChange={(e) => setSpotlight2Position([spotlight2Position[0], spotlight2Position[1], parseFloat(e.target.value)])}
+                          className="slider small"
+                        />
+                        <span className="axis-value">{spotlight2Position[2]}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Actions */}
             <div className="actions">
               <button
                 className="action-btn"
                 onClick={() => {
-                  console.log('Resetting to defaults')
+                  console.log('Resetting to modern defaults')
                   setActiveTexture(1)
-                  setLightColor('#ffffff')
-                  setLightIntensity(2)
+                  setRectIntensity(15)
+                  setRectColor('#ff9933')
+                  setLightIntensity(3)
+                  setSpotlight1Intensity(20)
+                  setSpotlight1Position([0, 15, -10])
+                  setSpotlight2Intensity(15)
+                  setSpotlight2Position([0, 15, 10])
+                  setSpotlightAngle(0.8)
+                  setSpotlightPenumbra(0.3)
                 }}
               >
                 Reset
@@ -3658,10 +6777,21 @@ function UI({
                 onClick={() => {
                   const config = { 
                     activeTexture, 
-                    lightColor, 
-                    lightIntensity
+                    rectIntensity,
+                    rectColor,
+                    lightIntensity,
+                    spotlight1: {
+                      intensity: spotlight1Intensity,
+                      position: spotlight1Position
+                    },
+                    spotlight2: {
+                      intensity: spotlight2Intensity,
+                      position: spotlight2Position
+                    },
+                    spotlightAngle,
+                    spotlightPenumbra
                   }
-                  console.log('Table configuration saved:', config)
+                  console.log('Modern table configuration saved:', config)
                 }}
               >
                 Save
@@ -3676,7 +6806,7 @@ function UI({
           position: fixed;
           top: 16px;
           right: 16px;
-          width: ${isCollapsed ? '56px' : '280px'};
+          width: ${isCollapsed ? '56px' : '320px'};
           max-height: 90vh;
           background: rgba(2, 0, 0, 0.85);
           backdrop-filter: blur(20px);
@@ -3734,6 +6864,30 @@ function UI({
           display: flex;
           flex-direction: column;
           gap: 16px;
+        }
+
+        .tab-nav {
+          display: flex;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          margin-bottom: 8px;
+        }
+
+        .tab-btn {
+          flex: 1;
+          background: none;
+          border: none;
+          padding: 8px 12px;
+          color: rgba(255, 255, 255, 0.7);
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          transition: all 0.3s ease;
+          font-size: 11px;
+          font-weight: 500;
+        }
+
+        .tab-btn.active {
+          color: white;
+          border-bottom-color: white;
         }
 
         .section {
@@ -3840,6 +6994,13 @@ function UI({
           align-items: end;
         }
 
+        .triple-control {
+          display: grid;
+          grid-template-columns: auto 1fr 1fr;
+          gap: 8px;
+          align-items: end;
+        }
+
         .color-input {
           width: 32px;
           height: 32px;
@@ -3866,6 +7027,10 @@ function UI({
           appearance: none;
         }
 
+        .slider.small {
+          height: 3px;
+        }
+
         .slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
@@ -3874,6 +7039,11 @@ function UI({
           background: white;
           border-radius: 50%;
           cursor: pointer;
+        }
+
+        .slider.small::-webkit-slider-thumb {
+          width: 12px;
+          height: 12px;
         }
 
         .slider::-moz-range-thumb {
@@ -3890,6 +7060,32 @@ function UI({
           color: rgba(255, 255, 255, 0.8);
           font-family: monospace;
           min-width: 32px;
+          text-align: right;
+        }
+
+        .position-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .position-axis {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .position-axis label {
+          min-width: 12px;
+          font-size: 9px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .axis-value {
+          font-size: 9px;
+          color: rgba(255, 255, 255, 0.8);
+          font-family: monospace;
+          min-width: 24px;
           text-align: right;
         }
 
@@ -3945,8 +7141,19 @@ function useIsMobile() {
 
 export default function FurnitureConfigurator() {
   const [activeTexture, setActiveTexture] = useState(1)
-  const [lightColor, setLightColor] = useState('#ffffff')
-  const [lightIntensity, setLightIntensity] = useState(2)
+  const [rectColor, setRectColor] = useState('#ff9933') // Warm orange - shared between rect and lightbase
+  const [lightIntensity, setLightIntensity] = useState(3)
+  
+  // Modern lighting states with higher intensity for rect lights
+  const [rectIntensity, setRectIntensity] = useState(15) // Increased from 8 to 15
+  
+  // Dual spotlight states
+  const [spotlight1Intensity, setSpotlight1Intensity] = useState(20)
+  const [spotlight1Position, setSpotlight1Position] = useState([0, 15, -10])
+  const [spotlight2Intensity, setSpotlight2Intensity] = useState(15)
+  const [spotlight2Position, setSpotlight2Position] = useState([0, 15, 10]) // Opposite side
+  const [spotlightAngle, setSpotlightAngle] = useState(0.8)
+  const [spotlightPenumbra, setSpotlightPenumbra] = useState(0.3)
   
   const isMobile = useIsMobile()
 
@@ -3967,27 +7174,37 @@ export default function FurnitureConfigurator() {
         }}
         dpr={[1, 2]}
       >
-        {/* Dark background for ambience */}
-        <color attach="background" args={['#0a0a0a']} />
+        {/* Dark background for modern ambience */}
+        <color attach="background" args={['#050505']} />
         
         <Suspense fallback={<Loader />}>
-          <ContactShadows position={[0, -1, 0]} opacity={0.8} scale={30} blur={1} />
+          {/* Enhanced Reflective Floor */}
+          <ReflectiveFloor />
        
           <Model
             activeTexture={activeTexture}
-            lightColor={lightColor}
+            rectColor={rectColor} // Pass rectColor instead of lightColor
             lightIntensity={lightIntensity}
           />
 
-          {/* Optimized Fixed Lighting Setup */}
-          <Lighting />
+          {/* Modern Under-Table Lighting Setup with dual spotlights */}
+          <ModernLighting
+            rectIntensity={rectIntensity}
+            rectColor={rectColor}
+            spotlight1Intensity={spotlight1Intensity}
+            spotlight1Position={spotlight1Position}
+            spotlight2Intensity={spotlight2Intensity}
+            spotlight2Position={spotlight2Position}
+            spotlightAngle={spotlightAngle}
+            spotlightPenumbra={spotlightPenumbra}
+          />
           
           <EffectComposer>
             <Bloom
-              intensity={0.2}
-              luminanceThreshold={0.9}
-              luminanceSmoothing={15}
-              height={90}
+              intensity={0.74}
+              luminanceThreshold={0.7}
+              luminanceSmoothing={25}
+              height={120}
             />
           </EffectComposer>
   
@@ -4009,10 +7226,24 @@ export default function FurnitureConfigurator() {
       <UI
         activeTexture={activeTexture}
         setActiveTexture={setActiveTexture}
-        lightColor={lightColor}
-        setLightColor={setLightColor}
+        rectIntensity={rectIntensity}
+        setRectIntensity={setRectIntensity}
+        rectColor={rectColor}
+        setRectColor={setRectColor}
         lightIntensity={lightIntensity}
         setLightIntensity={setLightIntensity}
+        spotlight1Intensity={spotlight1Intensity}
+        setSpotlight1Intensity={setSpotlight1Intensity}
+        spotlight1Position={spotlight1Position}
+        setSpotlight1Position={setSpotlight1Position}
+        spotlight2Intensity={spotlight2Intensity}
+        setSpotlight2Intensity={setSpotlight2Intensity}
+        spotlight2Position={spotlight2Position}
+        setSpotlight2Position={setSpotlight2Position}
+        spotlightAngle={spotlightAngle}
+        setSpotlightAngle={setSpotlightAngle}
+        spotlightPenumbra={spotlightPenumbra}
+        setSpotlightPenumbra={setSpotlightPenumbra}
         isMobile={isMobile}
       />
     </div>
@@ -4021,3 +7252,4 @@ export default function FurnitureConfigurator() {
 
 // Preload the model
 useGLTF.preload('/ramses.glb')
+
