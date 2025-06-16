@@ -5757,44 +5757,44 @@ function ModernLighting({
       {/* Rect Light 1 - Right side (light pointing left towards center) */}
       <rectAreaLight
         ref={rectLight1Ref}
-        width={4.5}
-        height={0.44}
+        width={4.6}
+        height={0.24}
         intensity={rectIntensity}
         color={rectColor}
-        position={[2.367, -0.875, 0.001]}
+        position={[2.367, -1, 0.00]}
         rotation={[0, -Math.PI / 2, 0]}
       />
       
       {/* Rect Light 2 - Left side (light pointing right towards center) */}
       <rectAreaLight
         ref={rectLight2Ref}
-        width={4.5}
-        height={0.44}
+        width={4.6}
+        height={0.24}
         intensity={rectIntensity}
         color={rectColor}
-        position={[-2.382, -0.875, 0.001]}
+        position={[-2.367, -1, 0.00]}
         rotation={[0, Math.PI / 2, 0]}
       />
       
       {/* Rect Light 3 - Back (light pointing forward towards center) */}
       <rectAreaLight
         ref={rectLight3Ref}
-        width={4.5}
-        height={0.44}
+        width={4.6}
+        height={0.24}
         intensity={rectIntensity}
         color={rectColor}
-        position={[0.012, -0.875, 2.385]}
+        position={[0.0, -1, 2.385]}
         rotation={[0, Math.PI, 0]}
       />
       
       {/* Rect Light 4 - Front (light pointing backward towards center) */}
       <rectAreaLight
         ref={rectLight4Ref}
-        width={4.5}
-        height={0.44}
+        width={4.6}
+        height={0.24}
         intensity={rectIntensity}
         color={rectColor}
-        position={[0.012, -0.875, -2.364]}
+        position={[0.0, -1, -2.385]}
         rotation={[0, 0, 0]}
       />
       
@@ -5843,7 +5843,7 @@ function ModernLighting({
 function ReflectiveFloor() {
   return (
     <mesh position={[0, -1.1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[25, 25]} />
+      <planeGeometry args={[100, 100]} />
       <MeshReflectorMaterial
         blur={[400, 200]}
         resolution={2048}
@@ -5960,9 +5960,9 @@ function Model({ activeTexture, rectColor, lightIntensity, ...props }) {
     }
   }, [lightMaterial])
 
-  // // Enhanced breathing animation and light pulsing
+  // Enhanced breathing animation and light pulsing
   // useFrame((state) => {
-  //   if (groupl.current) {
+  //   if (groupRef.current) {
   //     groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
   //   }
     
@@ -6002,7 +6002,7 @@ function Model({ activeTexture, rectColor, lightIntensity, ...props }) {
   )
 }
 
-// Enhanced UI Component with dual spotlight controls
+// Enhanced UI Component with updated default values and 2x intensity ranges
 function UI({ 
   activeTexture, 
   setActiveTexture, 
@@ -6144,7 +6144,7 @@ function UI({
                             <input
                               type="range"
                               min="0"
-                              max="30"
+                              max="60"
                               step="1"
                               value={rectIntensity}
                               onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
@@ -6160,8 +6160,8 @@ function UI({
                         <div className="mobile-slider-container">
                           <input
                             type="range"
-                            min="0.5"
-                            max="8"
+                            min="1"
+                            max="16"
                             step="0.1"
                             value={lightIntensity}
                             onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
@@ -6560,7 +6560,7 @@ function UI({
                         <input
                           type="range"
                           min="0"
-                          max="30"
+                          max="60"
                           step="1"
                           value={rectIntensity}
                           onChange={(e) => setRectIntensity(parseFloat(e.target.value))}
@@ -6574,8 +6574,8 @@ function UI({
                       <div className="slider-container">
                         <input
                           type="range"
-                          min="0.5"
-                          max="8"
+                          min="1"
+                          max="16"
                           step="0.1"
                           value={lightIntensity}
                           onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
@@ -6665,8 +6665,8 @@ function UI({
                         <label>X</label>
                         <input
                           type="range"
-                          min="-20"
-                          max="20"
+                          min="-30"
+                          max="30"
                           step="0.5"
                           value={spotlight1Position[0]}
                           onChange={(e) => setSpotlight1Position([parseFloat(e.target.value), spotlight1Position[1], spotlight1Position[2]])}
@@ -6691,8 +6691,8 @@ function UI({
                         <label>Z</label>
                         <input
                           type="range"
-                          min="-20"
-                          max="20"
+                          min="-30"
+                          max="30"
                           step="0.5"
                           value={spotlight1Position[2]}
                           onChange={(e) => setSpotlight1Position([spotlight1Position[0], spotlight1Position[1], parseFloat(e.target.value)])}
@@ -6711,8 +6711,8 @@ function UI({
                         <label>X</label>
                         <input
                           type="range"
-                          min="-20"
-                          max="20"
+                          min="-30"
+                          max="30"
                           step="0.5"
                           value={spotlight2Position[0]}
                           onChange={(e) => setSpotlight2Position([parseFloat(e.target.value), spotlight2Position[1], spotlight2Position[2]])}
@@ -6737,8 +6737,8 @@ function UI({
                         <label>Z</label>
                         <input
                           type="range"
-                          min="-20"
-                          max="20"
+                          min="-30"
+                          max="30"
                           step="0.5"
                           value={spotlight2Position[2]}
                           onChange={(e) => setSpotlight2Position([spotlight2Position[0], spotlight2Position[1], parseFloat(e.target.value)])}
@@ -6757,17 +6757,17 @@ function UI({
               <button
                 className="action-btn"
                 onClick={() => {
-                  console.log('Resetting to modern defaults')
+                  console.log('Resetting to optimized defaults')
                   setActiveTexture(1)
-                  setRectIntensity(15)
-                  setRectColor('#ff9933')
-                  setLightIntensity(3)
-                  setSpotlight1Intensity(20)
-                  setSpotlight1Position([0, 15, -10])
-                  setSpotlight2Intensity(15)
-                  setSpotlight2Position([0, 15, 10])
-                  setSpotlightAngle(0.8)
-                  setSpotlightPenumbra(0.3)
+                  setRectIntensity(30) // Your optimized value as default (mid-range of 0-60)
+                  setRectColor('#ffb366') // Your optimized color as default
+                  setLightIntensity(5.9) // Your optimized value as default (mid-range of 1-16)
+                  setSpotlight1Intensity(11) // Your optimized value as default
+                  setSpotlight1Position([-17, 16.5, -8]) // Your optimized position as default
+                  setSpotlight2Intensity(21) // Your optimized value as default
+                  setSpotlight2Position([15.5, 16.5, -20]) // Your optimized position as default
+                  setSpotlightAngle(1) // Your optimized value as default
+                  setSpotlightPenumbra(0.3) // Your optimized value as default
                 }}
               >
                 Reset
@@ -7141,25 +7141,25 @@ function useIsMobile() {
 
 export default function FurnitureConfigurator() {
   const [activeTexture, setActiveTexture] = useState(1)
-  const [rectColor, setRectColor] = useState('#ff9933') // Warm orange - shared between rect and lightbase
-  const [lightIntensity, setLightIntensity] = useState(3)
   
-  // Modern lighting states with higher intensity for rect lights
-  const [rectIntensity, setRectIntensity] = useState(15) // Increased from 8 to 15
+  // Your optimized values as defaults (mid-range of sliders)
+  const [rectColor, setRectColor] = useState('#ffb366') // Your optimized color
+  const [lightIntensity, setLightIntensity] = useState(5.9) // Your optimized value (mid-range of 1-16)
+  const [rectIntensity, setRectIntensity] = useState(30) // Your optimized value (mid-range of 0-60)
   
-  // Dual spotlight states
-  const [spotlight1Intensity, setSpotlight1Intensity] = useState(20)
-  const [spotlight1Position, setSpotlight1Position] = useState([0, 15, -10])
-  const [spotlight2Intensity, setSpotlight2Intensity] = useState(15)
-  const [spotlight2Position, setSpotlight2Position] = useState([0, 15, 10]) // Opposite side
-  const [spotlightAngle, setSpotlightAngle] = useState(0.8)
-  const [spotlightPenumbra, setSpotlightPenumbra] = useState(0.3)
+  // Dual spotlight states with your optimized values
+  const [spotlight1Intensity, setSpotlight1Intensity] = useState(11) // Your optimized value
+  const [spotlight1Position, setSpotlight1Position] = useState([-17, 16.5, -8]) // Your optimized position
+  const [spotlight2Intensity, setSpotlight2Intensity] = useState(21) // Your optimized value
+  const [spotlight2Position, setSpotlight2Position] = useState([15.5, 16.5, -20]) // Your optimized position
+  const [spotlightAngle, setSpotlightAngle] = useState(1) // Your optimized value
+  const [spotlightPenumbra, setSpotlightPenumbra] = useState(0.3) // Your optimized value
   
   const isMobile = useIsMobile()
 
   // Dynamic camera settings based on device
-  const cameraPosition = isMobile ? [8, 8, 8] : [5, 5, 5]
-  const cameraFov = isMobile ? 55 : 45
+  const cameraPosition = isMobile ? [8, 8, 8] : [-5, 2.5, 8.5]
+  const cameraFov = isMobile ? 85 : 55
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
@@ -7201,10 +7201,10 @@ export default function FurnitureConfigurator() {
           
           <EffectComposer>
             <Bloom
-              intensity={0.74}
-              luminanceThreshold={0.7}
+              intensity={6.4}
+              luminanceThreshold={1.37}
               luminanceSmoothing={25}
-              height={120}
+              height={820}
             />
           </EffectComposer>
   
@@ -7252,4 +7252,3 @@ export default function FurnitureConfigurator() {
 
 // Preload the model
 useGLTF.preload('/ramses.glb')
-
